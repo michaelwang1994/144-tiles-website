@@ -26,16 +26,19 @@ jobs:
         with:
           node-version: 20
           cache: npm
+          cache-dependency-path: 144-tiles-website/package-lock.json
 
       - run: npm ci
+        working-directory: 144-tiles-website
 
       - run: npm run build
+        working-directory: 144-tiles-website
 
       - uses: actions/configure-pages@v5
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: 144-tiles-website/dist
 
       - id: deployment
         uses: actions/deploy-pages@v4
