@@ -267,6 +267,9 @@ renderText();
 const STEP = Math.floor(Math.min(TILE_W, TILE_H) / 2); // 16 px
 
 let syncAll: () => void = () => {};
+let broadcastChow: (cx: number, cy: number) => void = () => {};
+let broadcastPung: (cx: number, cy: number) => void = () => {};
+let broadcastKong: (cx: number, cy: number) => void = () => {};
 
 const onMove = (cx: number, cy: number) => {
   if (!dragId) return;
@@ -330,11 +333,134 @@ function cleanupOverlaps(): void {
   applyDOM();
 }
 
+function parseSuitTile(id: string): { suit: string; num: number } | null {
+  const m = id.match(/^MJ(\d)(wan|tiao|bing)-/);
+  if (!m) return null;
+  return { num: parseInt(m[1]!), suit: m[2]! };
+}
+
+function flashLabel(text: string, cx: number, cy: number, extraClass: string): void {
+  const el = document.createElement("div");
+  el.className = `chow-label ${extraClass}`;
+  el.textContent = text;
+  el.style.left = `${cx}px`;
+  el.style.top = `${cy}px`;
+  board.appendChild(el);
+  el.addEventListener("animationend", () => el.remove());
+}
+
+// Two tiles are "near enough" to form a Chow group if their centers are within this distance.
+const CHOW_DIST = TILE_W * 2.5;
+
+function checkChow(draggedId: string): void {
+  const dragged = parseSuitTile(draggedId);
+  if (!dragged) return;
+
+  const dp = pos.get(draggedId)!;
+  const dCx = dp.x + TILE_W / 2;
+  const dCy = dp.y + TILE_H / 2;
+
+  // Collect same-suit tiles whose centers are within CHOW_DIST of the dragged tile.
+  const nearby: { num: number; cx: number; cy: number }[] = [];
+  for (const [id, p] of pos) {
+    if (id === draggedId) continue;
+    const t = parseSuitTile(id);
+    if (!t || t.suit !== dragged.suit) continue;
+    const cx = p.x + TILE_W / 2;
+    const cy = p.y + TILE_H / 2;
+    if (Math.hypot(cx - dCx, cy - dCy) <= CHOW_DIST) nearby.push({ num: t.num, cx, cy });
+  }
+
+  // Check every pair of nearby tiles: do they + the dragged tile form a run of 3?
+  for (let i = 0; i < nearby.length; i++) {
+    for (let j = i + 1; j < nearby.length; j++) {
+      const a = nearby[i]!, b = nearby[j]!;
+      // The two partners must also be near each other.
+      if (Math.hypot(a.cx - b.cx, a.cy - b.cy) > CHOW_DIST) continue;
+
+      const [n0, n1, n2] = [dragged.num, a.num, b.num].sort((x, y) => x - y) as [number, number, number];
+      if (n1 !== n0 + 1 || n2 !== n0 + 2) continue;
+
+      const groupCx = (dCx + a.cx + b.cx) / 3;
+      const groupCy = (dCy + a.cy + b.cy) / 3;
+      flashLabel("CHOW!", groupCx, groupCy, "chow-success");
+      broadcastChow(groupCx, groupCy);
+      return;
+    }
+  }
+}
+
+function checkPung(draggedId: string): void {
+  const baseName = draggedId.replace(/-\d+$/, "");
+  const dp = pos.get(draggedId)!;
+  const dCx = dp.x + TILE_W / 2;
+  const dCy = dp.y + TILE_H / 2;
+
+  const nearby: { cx: number; cy: number }[] = [];
+  for (const [id, p] of pos) {
+    if (id === draggedId) continue;
+    if (!id.startsWith(baseName + "-")) continue;
+    const cx = p.x + TILE_W / 2;
+    const cy = p.y + TILE_H / 2;
+    if (Math.hypot(cx - dCx, cy - dCy) <= CHOW_DIST) nearby.push({ cx, cy });
+  }
+
+  for (let i = 0; i < nearby.length; i++) {
+    for (let j = i + 1; j < nearby.length; j++) {
+      const a = nearby[i]!, b = nearby[j]!;
+      if (Math.hypot(a.cx - b.cx, a.cy - b.cy) > CHOW_DIST) continue;
+      const groupCx = (dCx + a.cx + b.cx) / 3;
+      const groupCy = (dCy + a.cy + b.cy) / 3;
+      flashLabel("PUNG!", groupCx, groupCy, "pung-success");
+      broadcastPung(groupCx, groupCy);
+      return;
+    }
+  }
+}
+
+function checkKong(draggedId: string): void {
+  const baseName = draggedId.replace(/-\d+$/, "");
+  const dp = pos.get(draggedId)!;
+  const dCx = dp.x + TILE_W / 2;
+  const dCy = dp.y + TILE_H / 2;
+
+  const nearby: { cx: number; cy: number }[] = [];
+  for (const [id, p] of pos) {
+    if (id === draggedId) continue;
+    if (!id.startsWith(baseName + "-")) continue;
+    const cx = p.x + TILE_W / 2;
+    const cy = p.y + TILE_H / 2;
+    if (Math.hypot(cx - dCx, cy - dCy) <= CHOW_DIST) nearby.push({ cx, cy });
+  }
+
+  if (nearby.length < 3) return;
+
+  for (let i = 0; i < nearby.length - 2; i++) {
+    for (let j = i + 1; j < nearby.length - 1; j++) {
+      for (let k = j + 1; k < nearby.length; k++) {
+        const a = nearby[i]!, b = nearby[j]!, c = nearby[k]!;
+        if (Math.hypot(a.cx - b.cx, a.cy - b.cy) > CHOW_DIST) continue;
+        if (Math.hypot(b.cx - c.cx, b.cy - c.cy) > CHOW_DIST) continue;
+        if (Math.hypot(a.cx - c.cx, a.cy - c.cy) > CHOW_DIST) continue;
+        const groupCx = (dCx + a.cx + b.cx + c.cx) / 4;
+        const groupCy = (dCy + a.cy + b.cy + c.cy) / 4;
+        flashLabel("KONG!", groupCx, groupCy, "kong-success");
+        broadcastKong(groupCx, groupCy);
+        return;
+      }
+    }
+  }
+}
+
 const endDrag = () => {
   if (!dragId) return;
+  const releasedId = dragId;
   dragId = null;
   cleanupOverlaps();
   syncAll();
+  checkChow(releasedId);
+  checkPung(releasedId);
+  checkKong(releasedId);
 };
 
 document.addEventListener("mouseup", endDrag);
@@ -347,6 +473,73 @@ window.addEventListener("resize", () => {
 playhtml.init({ onError: () => {} }).then(() => {
   type PosMap = Record<string, { x: number; y: number }>;
   const channel = playhtml.createPageData<PosMap>("tile-positions", {});
+
+  type ChowEvent = { id: string; cx: number; cy: number };
+  const seenChows = new Set<string>();
+  let chowInitialized = false;
+  const chowChannel = playhtml.createPageData<ChowEvent[]>("chow-events", []);
+  chowChannel.onUpdate((events: ChowEvent[]) => {
+    if (!chowInitialized) {
+      // Populate seen set on first load so old events don't replay.
+      for (const e of events) seenChows.add(e.id);
+      chowInitialized = true;
+      return;
+    }
+    for (const e of events) {
+      if (seenChows.has(e.id)) continue;
+      seenChows.add(e.id);
+      flashLabel("CHOW!", e.cx, e.cy, "chow-success");
+    }
+  });
+  broadcastChow = (cx: number, cy: number) => {
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    seenChows.add(id); // prevent echo-back on the local client
+    chowChannel.setData((draft: ChowEvent[]) => [...draft.slice(-19), { id, cx, cy }]);
+  };
+
+  type PungEvent = { id: string; cx: number; cy: number };
+  const seenPungs = new Set<string>();
+  let pungInitialized = false;
+  const pungChannel = playhtml.createPageData<PungEvent[]>("pung-events", []);
+  pungChannel.onUpdate((events: PungEvent[]) => {
+    if (!pungInitialized) {
+      for (const e of events) seenPungs.add(e.id);
+      pungInitialized = true;
+      return;
+    }
+    for (const e of events) {
+      if (seenPungs.has(e.id)) continue;
+      seenPungs.add(e.id);
+      flashLabel("PUNG!", e.cx, e.cy, "pung-success");
+    }
+  });
+  broadcastPung = (cx: number, cy: number) => {
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    seenPungs.add(id);
+    pungChannel.setData((draft: PungEvent[]) => [...draft.slice(-19), { id, cx, cy }]);
+  };
+
+  type KongEvent = { id: string; cx: number; cy: number };
+  const seenKongs = new Set<string>();
+  let kongInitialized = false;
+  const kongChannel = playhtml.createPageData<KongEvent[]>("kong-events", []);
+  kongChannel.onUpdate((events: KongEvent[]) => {
+    if (!kongInitialized) {
+      for (const e of events) seenKongs.add(e.id);
+      kongInitialized = true;
+      return;
+    }
+    for (const e of events) {
+      if (seenKongs.has(e.id)) continue;
+      seenKongs.add(e.id);
+      flashLabel("KONG!", e.cx, e.cy, "kong-success");
+    }
+  });
+  broadcastKong = (cx: number, cy: number) => {
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    seenKongs.add(id);
+    kongChannel.setData((draft: KongEvent[]) => [...draft.slice(-19), { id, cx, cy }]);
+  };
 
   channel.onUpdate((data: PosMap) => {
     // Don't apply remote updates while a local drag is in flight — avoids echo glitches.
