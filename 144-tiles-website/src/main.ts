@@ -267,9 +267,7 @@ renderText();
 const STEP = Math.floor(Math.min(TILE_W, TILE_H) / 2); // 16 px
 
 let syncAll: () => void = () => {};
-let broadcastChow: (cx: number, cy: number) => void = () => {};
-let broadcastPung: (cx: number, cy: number) => void = () => {};
-let broadcastKong: (cx: number, cy: number) => void = () => {};
+let broadcastFlash: (text: string, extraClass: string, cx: number, cy: number) => void = () => {};
 
 const onMove = (cx: number, cy: number) => {
   if (!dragId) return;
@@ -383,84 +381,83 @@ function checkChow(draggedId: string): void {
 
       const groupCx = (dCx + a.cx + b.cx) / 3;
       const groupCy = (dCy + a.cy + b.cy) / 3;
-      flashLabel("CHOW!", groupCx, groupCy, "chow-success");
-      broadcastChow(groupCx, groupCy);
-      return;
-    }
-  }
-}
-
-function checkPung(draggedId: string): void {
-  const baseName = draggedId.replace(/-\d+$/, "");
-  const dp = pos.get(draggedId)!;
-  const dCx = dp.x + TILE_W / 2;
-  const dCy = dp.y + TILE_H / 2;
-
-  const nearby: { cx: number; cy: number }[] = [];
-  for (const [id, p] of pos) {
-    if (id === draggedId) continue;
-    if (!id.startsWith(baseName + "-")) continue;
-    const cx = p.x + TILE_W / 2;
-    const cy = p.y + TILE_H / 2;
-    if (Math.hypot(cx - dCx, cy - dCy) <= CHOW_DIST) nearby.push({ cx, cy });
-  }
-
-  for (let i = 0; i < nearby.length; i++) {
-    for (let j = i + 1; j < nearby.length; j++) {
-      const a = nearby[i]!, b = nearby[j]!;
-      if (Math.hypot(a.cx - b.cx, a.cy - b.cy) > CHOW_DIST) continue;
-      const groupCx = (dCx + a.cx + b.cx) / 3;
-      const groupCy = (dCy + a.cy + b.cy) / 3;
-      flashLabel("PUNG!", groupCx, groupCy, "pung-success");
-      broadcastPung(groupCx, groupCy);
-      return;
-    }
-  }
-}
-
-function checkKong(draggedId: string): void {
-  const baseName = draggedId.replace(/-\d+$/, "");
-  const dp = pos.get(draggedId)!;
-  const dCx = dp.x + TILE_W / 2;
-  const dCy = dp.y + TILE_H / 2;
-
-  const nearby: { cx: number; cy: number }[] = [];
-  for (const [id, p] of pos) {
-    if (id === draggedId) continue;
-    if (!id.startsWith(baseName + "-")) continue;
-    const cx = p.x + TILE_W / 2;
-    const cy = p.y + TILE_H / 2;
-    if (Math.hypot(cx - dCx, cy - dCy) <= CHOW_DIST) nearby.push({ cx, cy });
-  }
-
-  if (nearby.length < 3) return;
-
-  for (let i = 0; i < nearby.length - 2; i++) {
-    for (let j = i + 1; j < nearby.length - 1; j++) {
-      for (let k = j + 1; k < nearby.length; k++) {
-        const a = nearby[i]!, b = nearby[j]!, c = nearby[k]!;
-        if (Math.hypot(a.cx - b.cx, a.cy - b.cy) > CHOW_DIST) continue;
-        if (Math.hypot(b.cx - c.cx, b.cy - c.cy) > CHOW_DIST) continue;
-        if (Math.hypot(a.cx - c.cx, a.cy - c.cy) > CHOW_DIST) continue;
-        const groupCx = (dCx + a.cx + b.cx + c.cx) / 4;
-        const groupCy = (dCy + a.cy + b.cy + c.cy) / 4;
-        flashLabel("KONG!", groupCx, groupCy, "kong-success");
-        broadcastKong(groupCx, groupCy);
+      if (dCx > a.cx || dCx > b.cx) {
+        flashLabel("Chow only from the left!", groupCx, groupCy, "chow-warn");
+        broadcastFlash("Chow only from the left!", "chow-warn", groupCx, groupCy);
         return;
+      }
+      flashLabel("CHOW!", groupCx, groupCy, "chow-success");
+      broadcastFlash("CHOW!", "chow-success", groupCx, groupCy);
+      return;
+    }
+  }
+}
+
+// Max center-to-center distance between two touching tiles (diagonal corner touch).
+const TOUCH_DIST = Math.hypot(TILE_W, TILE_H) * 1.2; // ~65px
+
+// BFS through same-type tiles: find all copies reachable from draggedId via chains of touching tiles.
+function findMatchingCluster(draggedId: string): { cx: number; cy: number }[] {
+  const baseName = draggedId.replace(/-\d+$/, "");
+  const cluster = new Set<string>([draggedId]);
+  const queue = [draggedId];
+  while (queue.length > 0) {
+    const fromId = queue.shift()!;
+    const fp = pos.get(fromId)!;
+    const fCx = fp.x + TILE_W / 2;
+    const fCy = fp.y + TILE_H / 2;
+    for (const [id, p] of pos) {
+      if (cluster.has(id)) continue;
+      if (!id.startsWith(baseName + "-")) continue;
+      if (Math.hypot(p.x + TILE_W / 2 - fCx, p.y + TILE_H / 2 - fCy) <= TOUCH_DIST) {
+        cluster.add(id);
+        queue.push(id);
       }
     }
   }
+  cluster.delete(draggedId);
+  return [...cluster].map(id => {
+    const p = pos.get(id)!;
+    return { cx: p.x + TILE_W / 2, cy: p.y + TILE_H / 2 };
+  });
+}
+
+function checkPung(draggedId: string): boolean {
+  const dp = pos.get(draggedId)!;
+  const dCx = dp.x + TILE_W / 2;
+  const dCy = dp.y + TILE_H / 2;
+  const nearby = findMatchingCluster(draggedId);
+  if (nearby.length < 2) return false;
+  const a = nearby[0]!, b = nearby[1]!;
+  const groupCx = (dCx + a.cx + b.cx) / 3;
+  const groupCy = (dCy + a.cy + b.cy) / 3;
+  flashLabel("PUNG!", groupCx, groupCy, "pung-success");
+  broadcastFlash("PUNG!", "pung-success", groupCx, groupCy);
+  return true;
+}
+
+function checkKong(draggedId: string): boolean {
+  const dp = pos.get(draggedId)!;
+  const dCx = dp.x + TILE_W / 2;
+  const dCy = dp.y + TILE_H / 2;
+  const nearby = findMatchingCluster(draggedId);
+  if (nearby.length < 3) return false;
+  const a = nearby[0]!, b = nearby[1]!, c = nearby[2]!;
+  const groupCx = (dCx + a.cx + b.cx + c.cx) / 4;
+  const groupCy = (dCy + a.cy + b.cy + c.cy) / 4;
+  flashLabel("KONG!", groupCx, groupCy, "kong-success");
+  broadcastFlash("KONG!", "kong-success", groupCx, groupCy);
+  return true;
 }
 
 const endDrag = () => {
   if (!dragId) return;
   const releasedId = dragId;
   dragId = null;
+  checkChow(releasedId);
+  if (!checkKong(releasedId)) checkPung(releasedId);
   cleanupOverlaps();
   syncAll();
-  checkChow(releasedId);
-  checkPung(releasedId);
-  checkKong(releasedId);
 };
 
 document.addEventListener("mouseup", endDrag);
@@ -474,71 +471,21 @@ playhtml.init({ onError: () => {} }).then(() => {
   type PosMap = Record<string, { x: number; y: number }>;
   const channel = playhtml.createPageData<PosMap>("tile-positions", {});
 
-  type ChowEvent = { id: string; cx: number; cy: number };
-  const seenChows = new Set<string>();
-  let chowInitialized = false;
-  const chowChannel = playhtml.createPageData<ChowEvent[]>("chow-events", []);
-  chowChannel.onUpdate((events: ChowEvent[]) => {
-    if (!chowInitialized) {
-      // Populate seen set on first load so old events don't replay.
-      for (const e of events) seenChows.add(e.id);
-      chowInitialized = true;
-      return;
-    }
+  type FlashEvent = { id: string; text: string; extraClass: string; cx: number; cy: number; ts: number };
+  const seenFlashes = new Set<string>();
+  const flashChannel = playhtml.createPageData<FlashEvent[]>("flash-events", []);
+  flashChannel.onUpdate((events: FlashEvent[]) => {
+    const now = Date.now();
     for (const e of events) {
-      if (seenChows.has(e.id)) continue;
-      seenChows.add(e.id);
-      flashLabel("CHOW!", e.cx, e.cy, "chow-success");
+      if (seenFlashes.has(e.id)) continue;
+      seenFlashes.add(e.id);
+      if (now - e.ts < 5000) flashLabel(e.text, e.cx, e.cy, e.extraClass);
     }
   });
-  broadcastChow = (cx: number, cy: number) => {
+  broadcastFlash = (text: string, extraClass: string, cx: number, cy: number) => {
     const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    seenChows.add(id); // prevent echo-back on the local client
-    chowChannel.setData((draft: ChowEvent[]) => [...draft.slice(-19), { id, cx, cy }]);
-  };
-
-  type PungEvent = { id: string; cx: number; cy: number };
-  const seenPungs = new Set<string>();
-  let pungInitialized = false;
-  const pungChannel = playhtml.createPageData<PungEvent[]>("pung-events", []);
-  pungChannel.onUpdate((events: PungEvent[]) => {
-    if (!pungInitialized) {
-      for (const e of events) seenPungs.add(e.id);
-      pungInitialized = true;
-      return;
-    }
-    for (const e of events) {
-      if (seenPungs.has(e.id)) continue;
-      seenPungs.add(e.id);
-      flashLabel("PUNG!", e.cx, e.cy, "pung-success");
-    }
-  });
-  broadcastPung = (cx: number, cy: number) => {
-    const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    seenPungs.add(id);
-    pungChannel.setData((draft: PungEvent[]) => [...draft.slice(-19), { id, cx, cy }]);
-  };
-
-  type KongEvent = { id: string; cx: number; cy: number };
-  const seenKongs = new Set<string>();
-  let kongInitialized = false;
-  const kongChannel = playhtml.createPageData<KongEvent[]>("kong-events", []);
-  kongChannel.onUpdate((events: KongEvent[]) => {
-    if (!kongInitialized) {
-      for (const e of events) seenKongs.add(e.id);
-      kongInitialized = true;
-      return;
-    }
-    for (const e of events) {
-      if (seenKongs.has(e.id)) continue;
-      seenKongs.add(e.id);
-      flashLabel("KONG!", e.cx, e.cy, "kong-success");
-    }
-  });
-  broadcastKong = (cx: number, cy: number) => {
-    const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    seenKongs.add(id);
-    kongChannel.setData((draft: KongEvent[]) => [...draft.slice(-19), { id, cx, cy }]);
+    seenFlashes.add(id);
+    flashChannel.setData((draft: FlashEvent[]) => [...draft.slice(-19), { id, text, extraClass, cx, cy, ts: Date.now() }]);
   };
 
   channel.onUpdate((data: PosMap) => {
