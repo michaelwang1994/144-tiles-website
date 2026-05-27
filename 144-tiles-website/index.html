@@ -1,14 +1,321 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>144 Tiles</title>
-    <link rel="stylesheet" href="/node_modules/playhtml/dist/style.css" />
-    <link rel="stylesheet" href="/src/style.css" />
-  </head>
-  <body>
-    <div id="board"></div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
-</html>
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>144 Tiles Mahjong Club</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&amp;family=Crimson+Pro:ital,wght@0,400;0,500;1,400&amp;family=Pinyon+Script&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  /* Hero layout variants (tweakable) */
+  .hero.layout-centered { padding: 0; max-width: none; min-height: 78vh; display: flex; align-items: center; position: relative; }
+  .hero.layout-centered .hero-grid { grid-template-columns: 1fr; max-width: 1200px; margin: 0 auto; padding: 80px 32px; text-align: center; position: relative; z-index: 2; width: 100%; }
+  .hero.layout-centered .hero-image { position: absolute; inset: 0; aspect-ratio: auto; z-index: 1; }
+  .hero.layout-centered .hero-image::after { background: linear-gradient(180deg, rgba(20,5,5,0.45), rgba(20,5,5,0.7)) !important; }
+  .hero.layout-centered .hero-eyebrow,
+  .hero.layout-centered .hero-meta,
+  .hero.layout-centered .hero-title { color: var(--cream) !important; }
+  .hero.layout-centered .hero-tagline { color: var(--cream-warm); max-width: none; margin-left: auto; margin-right: auto; }
+  .hero.layout-centered .hero-meta { justify-content: center; color: var(--cream); }
+  .hero.layout-centered .hero-meta .dot { background: var(--cream); }
+  .hero.layout-centered .hero-title .script { color: var(--cream); font-style: italic; }
+
+  .hero.layout-flip .hero-grid { grid-template-columns: 1fr 1.1fr; direction: rtl; }
+  .hero.layout-flip .hero-grid > * { direction: ltr; }
+
+  /* Tweaks panel */
+  #tweaks-panel {
+    position: fixed; bottom: 24px; right: 24px; width: 320px;
+    background: #fff; border: 1px solid rgba(155,27,27,0.2); border-radius: 4px;
+    box-shadow: 0 20px 60px rgba(40,10,10,0.18);
+    font-family: 'DM Serif Display', serif; z-index: 1000;
+    display: none; overflow: hidden;
+  }
+  #tweaks-panel.open { display: block; }
+  .tp-header {
+    background: var(--red); color: var(--cream);
+    padding: 14px 18px; display: flex; justify-content: space-between; align-items: center;
+    letter-spacing: 0.22em; text-transform: uppercase; font-size: 12px;
+  }
+  .tp-close { background: none; border: none; color: var(--cream); cursor: pointer; font-size: 20px; line-height: 1; padding: 0 4px; }
+  .tp-body { padding: 18px; max-height: 70vh; overflow-y: auto; }
+  .tp-section { margin-bottom: 20px; }
+  .tp-section:last-child { margin-bottom: 0; }
+  .tp-label { font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 10px; }
+  .tp-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tp-swatch { width: 36px; height: 36px; border-radius: 50%; cursor: pointer; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,0.15); transition: transform 0.15s; position: relative; }
+  .tp-swatch:hover { transform: scale(1.08); }
+  .tp-swatch.active::after { content: ''; position: absolute; inset: -5px; border: 1.5px solid var(--red); border-radius: 50%; }
+  .tp-photos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .tp-photo { aspect-ratio: 1/1; background-size: cover; background-position: center; cursor: pointer; border: 2px solid transparent; transition: transform 0.15s; }
+  .tp-photo:hover { transform: scale(1.04); }
+  .tp-photo.active { border-color: var(--red); }
+  .tp-layouts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .tp-layout { aspect-ratio: 5/4; background: var(--cream); cursor: pointer; border: 2px solid transparent; padding: 6px; transition: transform 0.15s; }
+  .tp-layout:hover { transform: scale(1.03); }
+  .tp-layout.active { border-color: var(--red); }
+  .tp-layout svg { width: 100%; height: 100%; }
+  .tp-text { width: 100%; border: 1px solid rgba(0,0,0,0.18); border-radius: 2px; padding: 10px; font-family: 'Crimson Pro', serif; font-size: 14px; font-style: italic; color: var(--ink); background: var(--cream); resize: vertical; min-height: 64px; }
+  .tp-text:focus { outline: none; border-color: var(--red); }
+
+  /* ===== Cream-on-red text overrides (body bg is red) ===== */
+  body { color: var(--cream); }
+  .nav { background: transparent; border-bottom-color: rgba(245, 237, 216, 0.28) !important; }
+  .nav-brand,
+  .nav-links a,
+  .nav-links a:hover,
+  .nav-links a.active,
+  .hero-eyebrow,
+  .hero-title,
+  .hero-title .script,
+  .hero-tagline,
+  .hero-meta {
+    color: var(--cream) !important;
+  }
+  .nav-links a.active { border-bottom-color: var(--cream) !important; }
+  .hero-meta .dot { background: var(--cream) !important; }
+  .foot { color: var(--cream) !important; }
+</style>
+</head>
+<body style="background-color: rgb(175, 0, 0);">
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand">
+      144 <span class="script">Tiles</span>
+    </a>
+    <div class="nav-links">
+      <a href="index.html" class="active">Home</a>
+      <a href="about.html">About</a>
+      <a href="#contact">Contact</a>
+    </div>
+  </div>
+</nav>
+
+<section class="hero" data-screen-label="Home">
+  <div class="hero-grid">
+    <div>
+      <div class="hero-eyebrow">Chicago Mahjong Club · Est. 2026</div>
+      <h1 class="hero-title">
+        <span class="num">144</span>
+        <span class="script">Tiles</span>
+        <span class="num">Mahjong Club</span>
+      </h1>
+      <p class="hero-tagline">
+        Reclaiming our narratives,<br>
+        one tile at a time.
+      </p>
+      <div class="hero-meta">
+        <span>Chicago</span>
+        <span class="dot"></span>
+        <span>Community</span>
+        <span class="dot"></span>
+        <span>Tradition</span>
+      </div>
+    </div>
+    <div class="hero-image hero-image-logo" style="background-image: url('assets/logo.png');"></div>
+  </div>
+</section>
+
+<section class="section-red" style="background-color: rgb(112, 0, 0);">
+  <div class="inner" style="display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;">
+    <div>
+      <div class="eyebrow">A Gathering</div>
+      <h2 class="section-title">
+        Where the tiles<br>
+        <span class="script">find their way</span><br>
+        home.
+      </h2>
+    </div>
+    <div style="aspect-ratio: 4/5; background: url('assets/photo-dsc-1.jpg') center/cover;"></div>
+  </div>
+</section>
+
+<section class="about-strip">
+  <div class="cell" style="background-image: url('assets/photo-table.jpg');"></div>
+  <div class="cell" style="background-image: url('assets/photo-spc-13.jpg');"></div>
+  <div class="cell" style="background-image: url('assets/photo-gangnam-2.jpg');"></div>
+</section>
+
+<section id="contact" class="contact" data-screen-label="Contact" style="background-color: rgb(176, 0, 0);">
+  <div class="inner">
+    <div class="eyebrow">Get In Touch</div>
+    <h2 class="title">
+      Contact <span class="script">us</span>
+    </h2>
+    <p class="blurb">
+      Want to play, host a game, or just say hello? Reach out — we're always looking for new tiles to add to the table.
+    </p>
+    <a href="mailto:hello@144tiles.com" class="contact-cta">
+      Say Hello <span class="arrow">→</span>
+    </a>
+    <div class="contact-info">
+      <a href="mailto:hello@144tiles.com">hello@144tiles.com</a>
+      <a href="https://instagram.com/144.tiles" target="_blank" rel="noopener">@144.tiles</a>
+    </div>
+  </div>
+</section>
+
+<footer class="foot">
+  144 Tiles Mahjong Club <span class="dot">·</span> Chicago <span class="dot">·</span> Est. 2026
+</footer>
+
+<!-- ===== TWEAKS PANEL ===== -->
+<div id="tweaks-panel">
+  <div class="tp-header">
+    <span>Tweaks</span>
+    <button class="tp-close" aria-label="Close">×</button>
+  </div>
+  <div class="tp-body">
+    <div class="tp-section">
+      <div class="tp-label">Hero Image</div>
+      <div class="tp-photos" id="tp-photos"></div>
+    </div>
+    <div class="tp-section">
+      <div class="tp-label">Tagline</div>
+      <textarea class="tp-text" id="tp-tagline" rows="2"></textarea>
+    </div>
+    <div class="tp-section">
+      <div class="tp-label">Palette</div>
+      <div class="tp-row" id="tp-palette"></div>
+    </div>
+    <div class="tp-section">
+      <div class="tp-label">Hero Layout</div>
+      <div class="tp-layouts" id="tp-layouts"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const TWEAKS = /*EDITMODE-BEGIN*/{
+  "heroImage": "assets/logo.png",
+  "tagline": "Reclaiming our narratives,\none tile at a time.",
+  "palette": "red",
+  "layout": "default"
+}/*EDITMODE-END*/;
+
+const PHOTOS = [
+  { id: 'logo',     src: 'assets/logo.png',            isLogo: true },
+  { id: 'gangnam8', src: 'assets/photo-gangnam-8.jpg' },
+  { id: 'tiles',    src: 'assets/photo-tiles.jpg' },
+  { id: 'table',    src: 'assets/photo-table.jpg' },
+  { id: 'spc',      src: 'assets/photo-spc.jpg' },
+  { id: 'gangnam2', src: 'assets/photo-gangnam-2.jpg' },
+];
+
+const PALETTES = {
+  red:        { red: '#9B1B1B', redDeep: '#6E1010', cream: '#F5EDD8', creamWarm: '#EFE4C8' },
+  burgundy:   { red: '#6E1010', redDeep: '#4A0808', cream: '#F0E5C8', creamWarm: '#E6D9B5' },
+  terracotta: { red: '#C2562B', redDeep: '#8A3A18', cream: '#F5EDD8', creamWarm: '#EFE4C8' },
+  ink:        { red: '#1a0a0a', redDeep: '#000',    cream: '#F5EDD8', creamWarm: '#EFE4C8' },
+};
+
+const LAYOUTS = [
+  { id: 'default',  label: 'Split' },
+  { id: 'flip',     label: 'Flip' },
+  { id: 'centered', label: 'Bleed' },
+];
+
+const state = { ...TWEAKS };
+
+function applyAll() {
+  const p = PALETTES[state.palette] || PALETTES.red;
+  const r = document.documentElement.style;
+  r.setProperty('--red', p.red);
+  r.setProperty('--red-deep', p.redDeep);
+  r.setProperty('--cream', p.cream);
+  r.setProperty('--cream-warm', p.creamWarm);
+
+  const hero = document.querySelector('.hero-image');
+  if (hero) {
+    hero.style.backgroundImage = `url('${state.heroImage}')`;
+    const isLogo = state.heroImage.includes('logo.png');
+    hero.classList.toggle('hero-image-logo', isLogo);
+  }
+
+  const tag = document.querySelector('.hero-tagline');
+  if (tag) {
+    tag.innerHTML = state.tagline.split('\n').map(l => l.trim()).join('<br>');
+  }
+
+  const heroSec = document.querySelector('.hero');
+  if (heroSec) {
+    heroSec.classList.remove('layout-default', 'layout-flip', 'layout-centered');
+    heroSec.classList.add('layout-' + state.layout);
+  }
+}
+
+function persist() {
+  try { window.parent.postMessage({ type: '__edit_mode_set_keys', edits: state }, '*'); } catch (e) {}
+}
+
+function buildPhotos() {
+  const wrap = document.getElementById('tp-photos');
+  wrap.innerHTML = '';
+  PHOTOS.forEach(p => {
+    const el = document.createElement('div');
+    el.className = 'tp-photo' + (state.heroImage === p.src ? ' active' : '');
+    el.style.backgroundImage = `url('${p.src}')`;
+    if (p.isLogo) {
+      el.style.backgroundSize = 'contain';
+      el.style.backgroundColor = PALETTES[state.palette].red;
+      el.style.backgroundRepeat = 'no-repeat';
+    }
+    el.onclick = () => { state.heroImage = p.src; applyAll(); buildPhotos(); persist(); };
+    wrap.appendChild(el);
+  });
+}
+
+function buildPalette() {
+  const wrap = document.getElementById('tp-palette');
+  wrap.innerHTML = '';
+  Object.entries(PALETTES).forEach(([id, p]) => {
+    const el = document.createElement('div');
+    el.className = 'tp-swatch' + (state.palette === id ? ' active' : '');
+    el.style.background = `linear-gradient(135deg, ${p.red} 0% 50%, ${p.cream} 50% 100%)`;
+    el.title = id;
+    el.onclick = () => { state.palette = id; applyAll(); buildPalette(); buildPhotos(); persist(); };
+    wrap.appendChild(el);
+  });
+}
+
+function buildLayouts() {
+  const wrap = document.getElementById('tp-layouts');
+  wrap.innerHTML = '';
+  LAYOUTS.forEach(l => {
+    const el = document.createElement('div');
+    el.className = 'tp-layout' + (state.layout === l.id ? ' active' : '');
+    const svgs = {
+      default:  '<svg viewBox="0 0 50 40"><rect x="2" y="6" width="22" height="3" fill="#9B1B1B"/><rect x="2" y="13" width="18" height="2" fill="#1a0a0a" opacity=".5"/><rect x="2" y="18" width="14" height="2" fill="#1a0a0a" opacity=".5"/><rect x="28" y="4" width="20" height="32" fill="#9B1B1B"/></svg>',
+      flip:     '<svg viewBox="0 0 50 40"><rect x="2" y="4" width="20" height="32" fill="#9B1B1B"/><rect x="26" y="6" width="22" height="3" fill="#9B1B1B"/><rect x="26" y="13" width="18" height="2" fill="#1a0a0a" opacity=".5"/><rect x="26" y="18" width="14" height="2" fill="#1a0a0a" opacity=".5"/></svg>',
+      centered: '<svg viewBox="0 0 50 40"><rect x="2" y="2" width="46" height="36" fill="#9B1B1B"/><rect x="14" y="14" width="22" height="3" fill="#F5EDD8"/><rect x="16" y="20" width="18" height="2" fill="#F5EDD8" opacity=".8"/><rect x="18" y="25" width="14" height="2" fill="#F5EDD8" opacity=".8"/></svg>',
+    };
+    el.innerHTML = svgs[l.id];
+    el.onclick = () => { state.layout = l.id; applyAll(); buildLayouts(); persist(); };
+    wrap.appendChild(el);
+  });
+}
+
+function buildAll() {
+  buildPhotos(); buildPalette(); buildLayouts();
+  const t = document.getElementById('tp-tagline');
+  t.value = state.tagline;
+  t.oninput = () => { state.tagline = t.value; applyAll(); persist(); };
+}
+
+const panel = document.getElementById('tweaks-panel');
+window.addEventListener('message', (e) => {
+  if (!e.data || typeof e.data !== 'object') return;
+  if (e.data.type === '__activate_edit_mode') { panel.classList.add('open'); buildAll(); }
+  else if (e.data.type === '__deactivate_edit_mode') { panel.classList.remove('open'); }
+});
+document.querySelector('.tp-close').onclick = () => {
+  panel.classList.remove('open');
+  try { window.parent.postMessage({ type: '__edit_mode_dismissed' }, '*'); } catch (e) {}
+};
+
+applyAll();
+try { window.parent.postMessage({ type: '__edit_mode_available' }, '*'); } catch (e) {}
+</script>
+
+</body></html>
