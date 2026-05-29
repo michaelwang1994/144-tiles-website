@@ -4,318 +4,161 @@
 <title>144 Tiles Mahjong Club</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&amp;family=Crimson+Pro:ital,wght@0,400;0,500;1,400&amp;family=Pinyon+Script&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&amp;family=Crimson+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600;1,700&amp;family=Montserrat:wght@400;500;600;700;800&amp;family=Pinyon+Script&amp;display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
+<link id="gfont-Montserrat" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&amp;display=swap">
 <style>
-  /* Hero layout variants (tweakable) */
-  .hero.layout-centered { padding: 0; max-width: none; min-height: 78vh; display: flex; align-items: center; position: relative; }
-  .hero.layout-centered .hero-grid { grid-template-columns: 1fr; max-width: 1200px; margin: 0 auto; padding: 80px 32px; text-align: center; position: relative; z-index: 2; width: 100%; }
-  .hero.layout-centered .hero-image { position: absolute; inset: 0; aspect-ratio: auto; z-index: 1; }
-  .hero.layout-centered .hero-image::after { background: linear-gradient(180deg, rgba(20,5,5,0.45), rgba(20,5,5,0.7)) !important; }
-  .hero.layout-centered .hero-eyebrow,
-  .hero.layout-centered .hero-meta,
-  .hero.layout-centered .hero-title { color: var(--cream) !important; }
-  .hero.layout-centered .hero-tagline { color: var(--cream-warm); max-width: none; margin-left: auto; margin-right: auto; }
-  .hero.layout-centered .hero-meta { justify-content: center; color: var(--cream); }
-  .hero.layout-centered .hero-meta .dot { background: var(--cream); }
-  .hero.layout-centered .hero-title .script { color: var(--cream); font-style: italic; }
-
-  .hero.layout-flip .hero-grid { grid-template-columns: 1fr 1.1fr; direction: rtl; }
-  .hero.layout-flip .hero-grid > * { direction: ltr; }
-
-  /* Tweaks panel */
-  #tweaks-panel {
-    position: fixed; bottom: 24px; right: 24px; width: 320px;
-    background: #fff; border: 1px solid rgba(155,27,27,0.2); border-radius: 4px;
-    box-shadow: 0 20px 60px rgba(40,10,10,0.18);
-    font-family: 'DM Serif Display', serif; z-index: 1000;
-    display: none; overflow: hidden;
-  }
-  #tweaks-panel.open { display: block; }
-  .tp-header {
-    background: var(--red); color: var(--cream);
-    padding: 14px 18px; display: flex; justify-content: space-between; align-items: center;
-    letter-spacing: 0.22em; text-transform: uppercase; font-size: 12px;
-  }
-  .tp-close { background: none; border: none; color: var(--cream); cursor: pointer; font-size: 20px; line-height: 1; padding: 0 4px; }
-  .tp-body { padding: 18px; max-height: 70vh; overflow-y: auto; }
-  .tp-section { margin-bottom: 20px; }
-  .tp-section:last-child { margin-bottom: 0; }
-  .tp-label { font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 10px; }
-  .tp-row { display: flex; gap: 8px; flex-wrap: wrap; }
-  .tp-swatch { width: 36px; height: 36px; border-radius: 50%; cursor: pointer; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,0.15); transition: transform 0.15s; position: relative; }
-  .tp-swatch:hover { transform: scale(1.08); }
-  .tp-swatch.active::after { content: ''; position: absolute; inset: -5px; border: 1.5px solid var(--red); border-radius: 50%; }
-  .tp-photos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-  .tp-photo { aspect-ratio: 1/1; background-size: cover; background-position: center; cursor: pointer; border: 2px solid transparent; transition: transform 0.15s; }
-  .tp-photo:hover { transform: scale(1.04); }
-  .tp-photo.active { border-color: var(--red); }
-  .tp-layouts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-  .tp-layout { aspect-ratio: 5/4; background: var(--cream); cursor: pointer; border: 2px solid transparent; padding: 6px; transition: transform 0.15s; }
-  .tp-layout:hover { transform: scale(1.03); }
-  .tp-layout.active { border-color: var(--red); }
-  .tp-layout svg { width: 100%; height: 100%; }
-  .tp-text { width: 100%; border: 1px solid rgba(0,0,0,0.18); border-radius: 2px; padding: 10px; font-family: 'Crimson Pro', serif; font-size: 14px; font-style: italic; color: var(--ink); background: var(--cream); resize: vertical; min-height: 64px; }
-  .tp-text:focus { outline: none; border-color: var(--red); }
-
-  /* ===== Cream-on-red text overrides (body bg is red) ===== */
-  body { color: var(--cream); }
-  .nav { background: transparent; border-bottom-color: rgba(245, 237, 216, 0.28) !important; }
-  .nav-brand,
-  .nav-links a,
-  .nav-links a:hover,
-  .nav-links a.active,
-  .hero-eyebrow,
-  .hero-title,
-  .hero-title .script,
-  .hero-tagline,
-  .hero-meta {
-    color: var(--cream) !important;
-  }
-  .nav-links a.active { border-bottom-color: var(--cream) !important; }
-  .hero-meta .dot { background: var(--cream) !important; }
-  .foot { color: var(--cream) !important; }
+  .hero-band { background-color: rgb(132, 0, 0); }
+  .hero-band .hero-title,
+  .hero-band .hero-title .num,
+  .hero-band .hero-title .script,
+  .hero-band .hero-tagline,
+  .hero-band .hero-meta,
+  .hero-band .hero-meta span { color: var(--cream) !important; }
+  /* offset anchor targets so the sticky nav doesn't cover them */
+  #top, #mission, #contact { scroll-margin-top: 88px; }
+  /* cream active underline */
+  .nav-links a { border-bottom: 1.5px solid transparent; transition: border-color 0.25s; }
+  .nav-links a.active { border-bottom-color: rgb(245, 237, 216) !important; }
 </style>
 </head>
-<body style="background-color: rgb(175, 0, 0);">
+<body style="">
 
-<nav class="nav">
+<nav class="nav" style="background-color: rgb(132, 0, 0);">
   <div class="nav-inner">
-    <a href="index.html" class="nav-brand">
-      144 <span class="script">Tiles</span>
-    </a>
-    <div class="nav-links">
-      <a href="index.html" class="active">Home</a>
-      <a href="about.html">About</a>
-      <a href="#contact">Contact</a>
+    <div class="nav-left">
+      <a href="#top" class="nav-logo-link">
+        <img class="nav-logo" src="assets/logo.png" alt="144 Tiles">
+      </a>
+    </div>
+    <div class="nav-links" style="color: rgb(245, 237, 216);">
+      <a href="#top" class="active" style="color: rgb(245, 237, 216); font-family: &quot;DM Serif Display&quot;; font-size: 17px">Home</a>
+      <a href="#mission" style="color: rgb(245, 237, 216);">About</a>
+      <a href="#contact" style="color: rgb(245, 237, 216);">Contact</a>
     </div>
   </div>
 </nav>
 
-<section class="hero" data-screen-label="Home">
-  <div class="hero-grid">
-    <div>
-      <div class="hero-eyebrow">Chicago Mahjong Club · Est. 2026</div>
-      <h1 class="hero-title">
-        <span class="num">144</span>
-        <span class="script">Tiles</span>
-        <span class="num">Mahjong Club</span>
-      </h1>
-      <p class="hero-tagline">
-        Reclaiming our narratives,<br>
-        one tile at a time.
-      </p>
-      <div class="hero-meta">
-        <span>Chicago</span>
-        <span class="dot"></span>
-        <span>Community</span>
-        <span class="dot"></span>
-        <span>Tradition</span>
+<section class="hero-band" id="top">
+  <div class="hero" data-screen-label="Intro">
+    <div class="hero-grid" style="display: flex; justify-content: center; align-items: center; gap: 48px;">
+      <div style="width: fit-content;">
+        <h1 class="hero-title" style="width: 100%;">
+          <span class="num" style="font-size: 200px; width: fit-content;"> 144</span>
+          <span class="script" style="font-size: 200px">Tiles</span>
+          <span class="num" style="font-size: 54px; width: 100%; text-align: center"> Mahjong Club</span>
+        </h1>
+        <p class="hero-tagline" style="font-family: Montserrat; font-weight: 400; width: fit-content;">
+          Reclaiming our narratives,<br>
+          one tile at a time <span style="font-style: normal; display: inline-block;">✨</span></p>
+        <div class="hero-meta" style="font-family: Montserrat; justify-content: center; width: 100%;">
+          <span style="width: 100%; text-align: center;">CHICAGO, IL</span>
+        </div>
+      </div>
+      <div class="hero-image" style="background-image: url('assets/photo-spc-13.jpg'); width: 452px; flex: 0 0 auto;"></div>
+    </div>
+  </div>
+</section>
+
+<section class="about-hero" id="mission" data-screen-label="About" style="padding: 48px 32px 0px;">
+  <h1 class="title"><span style="color: rgb(155, 27, 27); font-size: clamp(56px, 7vw, 96px); font-weight: 500;">Our</span> <span class="script" style="color: rgb(155, 27, 27); font-size: clamp(56px, 7vw, 96px)">mission</span></h1>
+</section>
+
+<section class="about-body" style="padding: 16px 32px 40px;">
+  <div class="about-image" style="background-image: url('assets/photo-dsc-2.jpg'); width: 361px;"></div>
+  <div class="about-text" style="max-width: calc(100% - 192px); font-family: Montserrat;">
+    <p style="font-family: Montserrat; font-size: 18px; font-weight: 500; color: rgb(46, 46, 46); line-height: 1.7;"></p><div style="font-size: 18px; font-weight: 500;"><span style="font-family: &quot;DM Serif Display&quot;, serif; font-size: 4em; float: left; line-height: 0.7; padding-right: 10px; padding-top: 6px; color: var(--red); font-weight: 500;">W</span><span style="color: rgb(74, 42, 42); font-weight: 500;">e exist to reclaim and celebrate the stories behind mahjong, honoring its cultural roots while building a modern, inclusive community around it.</span></div><div><br></div><div style="font-size: 18px; color: rgb(74, 42, 42); font-weight: 500;">Through teaching traditional styles of mahjong, we aim to make the game accessible, engaging, and meaningful for everyone, from first-timers to lifelong players.</div><div><br></div><div style="font-size: 18px; color: rgb(74, 42, 42); font-weight: 500;">At 144 Tiles, we create spaces where people can show up as they are, connect across generations and backgrounds, and experience the joy, strategy, and cultural depth of the game together.</div><p></p>
+  </div>
+</section>
+
+<section class="services">
+  <div class="about-hero" style="padding: 40px 32px 32px;">
+    <h2 class="title"><span style="color: rgb(155, 27, 27); font-size: clamp(56px, 7vw, 96px); font-weight: 500;">Our</span> <span class="script" style="color: rgb(155, 27, 27); font-size: clamp(56px, 7vw, 96px)">services</span></h2>
+  </div>
+  <ul class="services-list">
+    <li style="font-weight: 400; font-size: 18px;">Corporate events</li>
+    <li style="font-weight: 400; font-size: 18px;">Private parties</li>
+    <li style="font-weight: 400; font-size: 18px;">Mahjong consultation</li>
+    <li style="font-weight: 400; font-size: 18px;">Vendor markets</li>
+    <li style="font-weight: 400; font-size: 18px;">Collaborations</li>
+    <li style="font-weight: 400; font-size: 18px;">And more!</li>
+  </ul>
+</section>
+
+<section class="testimonials testimonials-tight" data-screen-label="Testimonials" style="padding: 0px 32px 24px">
+  <div class="about-hero" style="padding: 40px 32px 0px">
+    <h2 class="title" style="padding: 0px 0px 16px;"><span style="color: rgb(155, 27, 27); font-size: clamp(56px, 7vw, 96px); font-weight: 500;">Client</span> <span class="script" style="color: rgb(155, 27, 27); font-size: clamp(56px, 7vw, 96px)">testimonies</span></h2>
+  </div>
+  <div class="testimonial-grid">
+    <div class="testimonial" style="padding: 32px 44px 48px">
+      <div class="quote-mark">“</div>
+      <p class="quote-body" style="font-family: Montserrat; font-weight: 500; font-size: 17px; color: rgb(74, 42, 42);">144 Tiles created an <strong style="font-weight: 800;">incredibly fun</strong> and <strong style="font-weight: 800;">welcoming</strong> mahjong event for our Braze team. Their intentional table layouts made it <strong style="font-weight: 800;">easy for beginners</strong> to see the tiles and understand the setup, and the way they rotated players ensured that many people received <strong style="font-weight: 800;">personal instruction</strong>. Because the hosts were able to sit down and play with us, our employees got <strong style="font-weight: 800;">real-time guidance</strong> and picked up the game much faster, which led to a lot of positive feedback after the event. I'd highly recommend 144 Tiles for any workplace experience or team event.</p>
+      <div class="attrib">
+        <img class="attrib-logo braze" src="assets/logo-braze.png" alt="Braze">
+        <span class="attrib-name" style="font-size: 16px; font-weight: bold;"><span style="font-weight: normal; font-family: Montserrat;"><b style="font-weight: 600;"><span style="font-weight: normal;">- Diane T.</span></b></span></span>
       </div>
     </div>
-    <div class="hero-image hero-image-logo" style="background-image: url('assets/logo.png');"></div>
-  </div>
-</section>
-
-<section class="section-red" style="background-color: rgb(112, 0, 0);">
-  <div class="inner" style="display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;">
-    <div>
-      <div class="eyebrow">A Gathering</div>
-      <h2 class="section-title">
-        Where the tiles<br>
-        <span class="script">find their way</span><br>
-        home.
-      </h2>
+    <div class="testimonial" style="padding: 32px 44px 48px">
+      <div class="quote-mark">“</div>
+      <p class="quote-body" style="font-family: Montserrat; font-weight: 500; font-size: 17px;">It was such a <strong style="font-weight: 800; font-size: 17px;">great experience</strong> partnering with 144 Tiles. The instruction was <strong style="font-weight: 800; font-size: 17px;">approachable</strong>, <strong style="font-weight: 800; font-size: 17px;">engaging</strong>, <strong style="font-weight: 800; font-size: 17px;">and thoughtfully designed</strong> for beginners, and our members loved having the opportunity to learn a game rooted in <strong style="font-weight: 800; font-size: 17px;">connection</strong>, <strong style="font-weight: 800; font-size: 17px;">strategy</strong>, <strong style="font-weight: 800; font-size: 17px;">and community</strong>. The event created such a fun and welcoming atmosphere, and we've continued to hear positive feedback from attendees.</p>
+      <div class="attrib">
+        <img class="attrib-logo" src="assets/logo-chief.png" alt="Chief">
+        <span class="attrib-name" style="font-weight: bold;"><span style="font-weight: normal; font-family: Montserrat;">- Jen S.</span></span>
+      </div>
     </div>
-    <div style="aspect-ratio: 4/5; background: url('assets/photo-dsc-1.jpg') center/cover;"></div>
   </div>
 </section>
 
-<section class="about-strip">
-  <div class="cell" style="background-image: url('assets/photo-table.jpg');"></div>
-  <div class="cell" style="background-image: url('assets/photo-spc-13.jpg');"></div>
-  <div class="cell" style="background-image: url('assets/photo-gangnam-2.jpg');"></div>
+<section class="about-strip" style="padding: 10px 32px 0px; margin: 48px auto 80px; gap: 38px;">
+  <div class="cell" style="background-image: url('assets/photo-gangnam-12.jpg');"></div>
+  <div class="cell" style="background-image: url('assets/photo-dsc-3.jpg');"></div>
+  <div class="cell" style="background-image: url('assets/photo-spc.jpg');"></div>
 </section>
 
-<section id="contact" class="contact" data-screen-label="Contact" style="background-color: rgb(176, 0, 0);">
+<section id="contact" class="contact no-watermark" data-screen-label="Contact" style="background-color: rgb(132, 0, 0)">
   <div class="inner">
-    <div class="eyebrow">Get In Touch</div>
     <h2 class="title">
       Contact <span class="script">us</span>
     </h2>
-    <p class="blurb">
-      Want to play, host a game, or just say hello? Reach out — we're always looking for new tiles to add to the table.
-    </p>
-    <a href="mailto:hello@144tiles.com" class="contact-cta">
-      Say Hello <span class="arrow">→</span>
+    <p class="blurb" style="font-family: Montserrat; font-weight: 500; font-size: 16px">Want to play, host a game, or collaborate?</p>
+    <a href="mailto:hello@144tiles.com?subject=144%20Tiles%20Inquiry&amp;body=Hi%2C%20my%20name%20is%20...%20I%20would%20like%20to%20inquire%20about%20..." class="contact-cta" style="width: 180px; height: 52px; font-size: 16px; letter-spacing: 1px; text-align: center; font-family: Montserrat; font-weight: 600; text-transform: none; white-space: nowrap; justify-content: center;">
+      Say hello <span class="arrow">→</span>
     </a>
-    <div class="contact-info">
-      <a href="mailto:hello@144tiles.com">hello@144tiles.com</a>
-      <a href="https://instagram.com/144.tiles" target="_blank" rel="noopener">@144.tiles</a>
-    </div>
   </div>
 </section>
 
-<footer class="foot">
-  144 Tiles Mahjong Club <span class="dot">·</span> Chicago <span class="dot">·</span> Est. 2026
+<footer class="foot" style="font-family: Montserrat; background-color: rgb(245, 237, 216); color: rgb(74, 42, 42);">
+  <a href="https://www.instagram.com/144.tiles" target="_blank" rel="noopener" style="font-weight: 600; display: inline-flex; align-items: center; gap: 8px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="border-bottom: none;"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>@144.tiles</a>
 </footer>
 
-<!-- ===== TWEAKS PANEL ===== -->
-<div id="tweaks-panel">
-  <div class="tp-header">
-    <span>Tweaks</span>
-    <button class="tp-close" aria-label="Close">×</button>
-  </div>
-  <div class="tp-body">
-    <div class="tp-section">
-      <div class="tp-label">Hero Image</div>
-      <div class="tp-photos" id="tp-photos"></div>
-    </div>
-    <div class="tp-section">
-      <div class="tp-label">Tagline</div>
-      <textarea class="tp-text" id="tp-tagline" rows="2"></textarea>
-    </div>
-    <div class="tp-section">
-      <div class="tp-label">Palette</div>
-      <div class="tp-row" id="tp-palette"></div>
-    </div>
-    <div class="tp-section">
-      <div class="tp-label">Hero Layout</div>
-      <div class="tp-layouts" id="tp-layouts"></div>
-    </div>
-  </div>
-</div>
-
 <script>
-const TWEAKS = /*EDITMODE-BEGIN*/{
-  "heroImage": "assets/logo.png",
-  "tagline": "Reclaiming our narratives,\none tile at a time.",
-  "palette": "red",
-  "layout": "default"
-}/*EDITMODE-END*/;
+(function () {
+  var links = Array.prototype.slice.call(document.querySelectorAll('.nav-links a'));
+  var sections = links
+    .map(function (a) {
+      var href = a.getAttribute('href');
+      return href && href.charAt(0) === '#' ? { a: a, el: document.querySelector(href) } : null;
+    })
+    .filter(function (m) { return m && m.el; });
 
-const PHOTOS = [
-  { id: 'logo',     src: 'assets/logo.png',            isLogo: true },
-  { id: 'gangnam8', src: 'assets/photo-gangnam-8.jpg' },
-  { id: 'tiles',    src: 'assets/photo-tiles.jpg' },
-  { id: 'table',    src: 'assets/photo-table.jpg' },
-  { id: 'spc',      src: 'assets/photo-spc.jpg' },
-  { id: 'gangnam2', src: 'assets/photo-gangnam-2.jpg' },
-];
-
-const PALETTES = {
-  red:        { red: '#9B1B1B', redDeep: '#6E1010', cream: '#F5EDD8', creamWarm: '#EFE4C8' },
-  burgundy:   { red: '#6E1010', redDeep: '#4A0808', cream: '#F0E5C8', creamWarm: '#E6D9B5' },
-  terracotta: { red: '#C2562B', redDeep: '#8A3A18', cream: '#F5EDD8', creamWarm: '#EFE4C8' },
-  ink:        { red: '#1a0a0a', redDeep: '#000',    cream: '#F5EDD8', creamWarm: '#EFE4C8' },
-};
-
-const LAYOUTS = [
-  { id: 'default',  label: 'Split' },
-  { id: 'flip',     label: 'Flip' },
-  { id: 'centered', label: 'Bleed' },
-];
-
-const state = { ...TWEAKS };
-
-function applyAll() {
-  const p = PALETTES[state.palette] || PALETTES.red;
-  const r = document.documentElement.style;
-  r.setProperty('--red', p.red);
-  r.setProperty('--red-deep', p.redDeep);
-  r.setProperty('--cream', p.cream);
-  r.setProperty('--cream-warm', p.creamWarm);
-
-  const hero = document.querySelector('.hero-image');
-  if (hero) {
-    hero.style.backgroundImage = `url('${state.heroImage}')`;
-    const isLogo = state.heroImage.includes('logo.png');
-    hero.classList.toggle('hero-image-logo', isLogo);
-  }
-
-  const tag = document.querySelector('.hero-tagline');
-  if (tag) {
-    tag.innerHTML = state.tagline.split('\n').map(l => l.trim()).join('<br>');
-  }
-
-  const heroSec = document.querySelector('.hero');
-  if (heroSec) {
-    heroSec.classList.remove('layout-default', 'layout-flip', 'layout-centered');
-    heroSec.classList.add('layout-' + state.layout);
-  }
-}
-
-function persist() {
-  try { window.parent.postMessage({ type: '__edit_mode_set_keys', edits: state }, '*'); } catch (e) {}
-}
-
-function buildPhotos() {
-  const wrap = document.getElementById('tp-photos');
-  wrap.innerHTML = '';
-  PHOTOS.forEach(p => {
-    const el = document.createElement('div');
-    el.className = 'tp-photo' + (state.heroImage === p.src ? ' active' : '');
-    el.style.backgroundImage = `url('${p.src}')`;
-    if (p.isLogo) {
-      el.style.backgroundSize = 'contain';
-      el.style.backgroundColor = PALETTES[state.palette].red;
-      el.style.backgroundRepeat = 'no-repeat';
+  function onScroll() {
+    var y = window.scrollY + 140;
+    var current = sections[0];
+    for (var i = 0; i < sections.length; i++) {
+      if (sections[i].el.offsetTop <= y) current = sections[i];
     }
-    el.onclick = () => { state.heroImage = p.src; applyAll(); buildPhotos(); persist(); };
-    wrap.appendChild(el);
-  });
-}
+    // snap to the last link when scrolled to the very bottom
+    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) {
+      current = sections[sections.length - 1];
+    }
+    links.forEach(function (a) { a.classList.remove('active'); });
+    if (current) current.a.classList.add('active');
+  }
 
-function buildPalette() {
-  const wrap = document.getElementById('tp-palette');
-  wrap.innerHTML = '';
-  Object.entries(PALETTES).forEach(([id, p]) => {
-    const el = document.createElement('div');
-    el.className = 'tp-swatch' + (state.palette === id ? ' active' : '');
-    el.style.background = `linear-gradient(135deg, ${p.red} 0% 50%, ${p.cream} 50% 100%)`;
-    el.title = id;
-    el.onclick = () => { state.palette = id; applyAll(); buildPalette(); buildPhotos(); persist(); };
-    wrap.appendChild(el);
-  });
-}
-
-function buildLayouts() {
-  const wrap = document.getElementById('tp-layouts');
-  wrap.innerHTML = '';
-  LAYOUTS.forEach(l => {
-    const el = document.createElement('div');
-    el.className = 'tp-layout' + (state.layout === l.id ? ' active' : '');
-    const svgs = {
-      default:  '<svg viewBox="0 0 50 40"><rect x="2" y="6" width="22" height="3" fill="#9B1B1B"/><rect x="2" y="13" width="18" height="2" fill="#1a0a0a" opacity=".5"/><rect x="2" y="18" width="14" height="2" fill="#1a0a0a" opacity=".5"/><rect x="28" y="4" width="20" height="32" fill="#9B1B1B"/></svg>',
-      flip:     '<svg viewBox="0 0 50 40"><rect x="2" y="4" width="20" height="32" fill="#9B1B1B"/><rect x="26" y="6" width="22" height="3" fill="#9B1B1B"/><rect x="26" y="13" width="18" height="2" fill="#1a0a0a" opacity=".5"/><rect x="26" y="18" width="14" height="2" fill="#1a0a0a" opacity=".5"/></svg>',
-      centered: '<svg viewBox="0 0 50 40"><rect x="2" y="2" width="46" height="36" fill="#9B1B1B"/><rect x="14" y="14" width="22" height="3" fill="#F5EDD8"/><rect x="16" y="20" width="18" height="2" fill="#F5EDD8" opacity=".8"/><rect x="18" y="25" width="14" height="2" fill="#F5EDD8" opacity=".8"/></svg>',
-    };
-    el.innerHTML = svgs[l.id];
-    el.onclick = () => { state.layout = l.id; applyAll(); buildLayouts(); persist(); };
-    wrap.appendChild(el);
-  });
-}
-
-function buildAll() {
-  buildPhotos(); buildPalette(); buildLayouts();
-  const t = document.getElementById('tp-tagline');
-  t.value = state.tagline;
-  t.oninput = () => { state.tagline = t.value; applyAll(); persist(); };
-}
-
-const panel = document.getElementById('tweaks-panel');
-window.addEventListener('message', (e) => {
-  if (!e.data || typeof e.data !== 'object') return;
-  if (e.data.type === '__activate_edit_mode') { panel.classList.add('open'); buildAll(); }
-  else if (e.data.type === '__deactivate_edit_mode') { panel.classList.remove('open'); }
-});
-document.querySelector('.tp-close').onclick = () => {
-  panel.classList.remove('open');
-  try { window.parent.postMessage({ type: '__edit_mode_dismissed' }, '*'); } catch (e) {}
-};
-
-applyAll();
-try { window.parent.postMessage({ type: '__edit_mode_available' }, '*'); } catch (e) {}
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll);
+  onScroll();
+})();
 </script>
 
 </body></html>
