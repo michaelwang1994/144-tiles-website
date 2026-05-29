@@ -31,7 +31,7 @@ jobs:
 
       - run: npm run build
 
-      - run: echo "www.144tiles.com" > dist/CNAME
+      - run: echo "144tiles.com" > dist/CNAME
 
       - uses: actions/configure-pages@v5
 
