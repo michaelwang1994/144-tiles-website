@@ -167,7 +167,8 @@
   <div class="about-hero" style="padding: 40px 32px 0px">
     <h2 class="title" style="padding: 0px 0px 16px;"><span style="color: rgb(155, 27, 27); font-size: 92px; font-weight: 500;">Client</span> <span class="script" style="color: rgb(155, 27, 27); font-size: 92px">testimonies</span></h2>
   </div>
-  <div class="testimonial-grid">
+  <div class="testimonial-carousel">
+    <div class="testimonial-track" id="testimonial-track">
     <div class="testimonial" style="padding: 32px 44px 48px">
       <div class="quote-mark">“</div>
       <p class="quote-body" style="font-family: Montserrat; font-weight: 500; font-size: 17px; color: rgb(74, 42, 42);">144 Tiles created an <strong style="font-weight: 800;">incredibly fun</strong> and <strong style="font-weight: 800;">welcoming</strong> mahjong event for our Braze team. Their intentional table layouts made it <strong style="font-weight: 800;">easy for beginners</strong> to see the tiles and understand the setup, and the way they rotated players ensured that many people received <strong style="font-weight: 800;">personal instruction</strong>. Because the hosts were able to sit down and play with us, our employees got <strong style="font-weight: 800;">real-time guidance</strong> and picked up the game much faster, which led to a lot of positive feedback after the event. I'd highly recommend 144 Tiles for any workplace experience or team event.</p>
@@ -177,13 +178,42 @@
       </div>
     </div>
     <div class="testimonial" style="padding: 32px 44px 48px">
-      <div class="quote-mark">“</div>
+      <div class="quote-mark">”</div>
       <p class="quote-body" style="font-family: Montserrat; font-weight: 500; font-size: 17px;">It was such a <strong style="font-weight: 800; font-size: 17px;">great experience</strong> partnering with 144 Tiles. The instruction was <strong style="font-weight: 800; font-size: 17px;">approachable</strong>, <strong style="font-weight: 800; font-size: 17px;">engaging</strong>, <strong style="font-weight: 800; font-size: 17px;">and thoughtfully designed</strong> for beginners, and our members loved having the opportunity to learn a game rooted in <strong style="font-weight: 800; font-size: 17px;">connection</strong>, <strong style="font-weight: 800; font-size: 17px;">strategy</strong>, <strong style="font-weight: 800; font-size: 17px;">and community</strong>. The event created such a fun and welcoming atmosphere, and we've continued to hear positive feedback from attendees.</p>
       <div class="attrib">
         <img class="attrib-logo" src="assets/logo-chief.png" alt="Chief">
         <span class="attrib-name" style="font-weight: bold;"><span style="font-weight: normal; font-family: Montserrat;">- Jen S.</span></span>
       </div>
     </div>
+    <div class="testimonial" style="padding: 32px 44px 48px">
+      <div class="quote-mark">”</div>
+      <p class="quote-body" style="font-family: Montserrat; font-weight: 500; font-size: 17px; color: rgb(74, 42, 42);">Michael and 144 Tiles led a <strong style="font-weight: 800;">seamless, professional</strong> cultural engagement event for the Holy Trinity Institute, sharing Mahjong's <strong style="font-weight: 800;">rich history</strong> with <strong style="font-weight: 800;">contagious passion</strong>. Our evening was filled with <strong style="font-weight: 800;">laughter, learning, and connection</strong>, leaving participants with a deeper appreciation for the game and the cultures it carries.</p>
+      <div class="attrib">
+        <img class="attrib-logo" src="assets/logo-institute.png" alt="The Holy Trinity Institute for Discipleship and Mission" style="height: 56px;">
+        <span class="attrib-name" style="font-size: 16px;"><span style="font-weight: normal; font-family: Montserrat;">- Malissa M.</span></span>
+      </div>
+    </div>
+    <div class="testimonial" style="padding: 32px 44px 48px">
+      <div class="quote-mark">”</div>
+      <p class="quote-body" style="font-family: Montserrat; font-weight: 500; font-size: 17px; color: rgb(74, 42, 42);">I found 144 Tiles through Instagram and I knew I had to have them be a part of our AANHPI symposium. I love how they are <strong style="font-weight: 800;">reclaiming mahjong as a cultural tradition</strong> while making it <strong style="font-weight: 800;">accessible to everyone</strong>. At our Field Museum AANHPI symposium, they created a <strong style="font-weight: 800;">welcoming space</strong> where participants could learn, connect, and experience the <strong style="font-weight: 800;">rich cultural heritage</strong> of the game.
+      <div class="attrib">
+        <img class="attrib-logo" src="assets/logo-field.png" alt="Field Museum" style="height: 56px;">
+        <span class="attrib-name" style="font-size: 16px;"><span style="font-weight: normal; font-family: Montserrat;">- Ria P.</span></span>
+      </div>
+    </div>
+    <div class="testimonial" style="padding: 32px 44px 48px">
+      <div class="quote-mark">”</div>
+      <p class="quote-body" style="font-family: Montserrat; font-weight: 500; font-size: 17px; color: rgb(74, 42, 42);">144 Tiles hosted an <strong style="font-weight: 800;">amazing</strong> mahjong learning and playing event for our office, making the game <strong style="font-weight: 800;">approachable through clear, easy to follow instruction</strong> while also sharing its <strong style="font-weight: 800;">rich history</strong>. It was a great experience that <strong style="font-weight: 800;">brought our employees together</strong>, sparked excitement, and introduced many of us to the <strong style="font-weight: 800;">joy of learning and playing mahjong</strong>.</p>
+      <div class="attrib">
+        <span class="attrib-name" style="font-size: 16px;"><span style="font-weight: normal; font-family: Montserrat;">- Nicole S. &nbsp;·&nbsp; Corporate Event</span></span>
+      </div>
+    </div>
+    </div>
+  </div>
+  <div class="carousel-nav">
+    <button class="carousel-btn" id="tprev" aria-label="Previous testimonial">←</button>
+    <div class="carousel-dots" id="carousel-dots"></div>
+    <button class="carousel-btn" id="tnext" aria-label="Next testimonial">→</button>
   </div>
 </section>
 
@@ -581,6 +611,137 @@
       });
     });
   });
+})();
+</script>
+
+<script>
+(function () {
+  var track = document.getElementById('testimonial-track');
+  var dotsContainer = document.getElementById('carousel-dots');
+  var prevBtn = document.getElementById('tprev');
+  var nextBtn = document.getElementById('tnext');
+  if (!track || !prevBtn) return;
+  var cards = Array.prototype.slice.call(track.querySelectorAll('.testimonial'));
+  var current = 0;
+  var touchStartX = 0;
+  var perPage = 2;
+  var maxPos = cards.length - perPage;
+  var dotCount = maxPos + 1;
+
+  var dots = Array.from({ length: dotCount }, function (_, i) {
+    var d = document.createElement('button');
+    d.className = 'carousel-dot';
+    d.setAttribute('aria-label', 'Testimonial ' + (i + 1));
+    d.addEventListener('click', function () { goTo(i); });
+    dotsContainer.appendChild(d);
+    return d;
+  });
+
+  function goTo(n) {
+    n = Math.max(0, Math.min(n, maxPos));
+    current = n;
+    track.style.transform = 'translateX(-' + (50 * n) + '%)';
+    dots.forEach(function (d, i) { d.classList.toggle('active', i === n); });
+    prevBtn.disabled = n === 0;
+    nextBtn.disabled = n === maxPos;
+  }
+
+  function showMopai() {
+    var old = document.getElementById('mopai-label');
+    if (old) old.remove();
+    var r = nextBtn.getBoundingClientRect();
+    var x = r.left + window.scrollX + r.width / 2;
+    var y = r.top + window.scrollY;
+    var el = document.createElement('div');
+    el.id = 'mopai-label';
+    el.textContent = '摸牌 (mōpái)';
+    el.style.cssText = [
+      'position:absolute',
+      'pointer-events:none',
+      'z-index:9999',
+      'font-family:"Crimson Pro",serif',
+      'font-size:22px',
+      'font-style:italic',
+      'color:rgb(132,0,0)',
+      'left:' + x + 'px',
+      'top:' + y + 'px',
+      'transform:translate(-50%,-100%) scale(0.5)',
+      'transform-origin:center bottom',
+      'opacity:0',
+      'transition:opacity 0.2s ease, transform 0.45s cubic-bezier(0.34,1.56,0.64,1)',
+      'white-space:nowrap',
+      'letter-spacing:0.03em',
+      'text-shadow:2px 4px 12px rgba(0,0,0,0.95), 0 8px 32px rgba(0,0,0,0.4)',
+    ].join(';');
+    document.body.appendChild(el);
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        el.style.opacity = '1';
+        el.style.transform = 'translate(-50%,-100%) scale(1)';
+        setTimeout(function () {
+          el.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+          el.style.opacity = '0';
+          el.style.transform = 'translate(-50%,-120%) scale(0.85)';
+          setTimeout(function () { el.remove(); }, 450);
+        }, 950);
+      });
+    });
+  }
+
+  function showChupai() {
+    var old = document.getElementById('chupai-label');
+    if (old) old.remove();
+    var r = prevBtn.getBoundingClientRect();
+    var x = r.left + window.scrollX + r.width / 2;
+    var y = r.top + window.scrollY;
+    var el = document.createElement('div');
+    el.id = 'chupai-label';
+    el.textContent = '出牌 (chūpái)';
+    el.style.cssText = [
+      'position:absolute',
+      'pointer-events:none',
+      'z-index:9999',
+      'font-family:"Crimson Pro",serif',
+      'font-size:22px',
+      'font-style:italic',
+      'color:rgb(132,0,0)',
+      'left:' + x + 'px',
+      'top:' + y + 'px',
+      'transform:translate(-50%,-100%) scale(0.5)',
+      'transform-origin:center bottom',
+      'opacity:0',
+      'transition:opacity 0.2s ease, transform 0.45s cubic-bezier(0.34,1.56,0.64,1)',
+      'white-space:nowrap',
+      'letter-spacing:0.03em',
+      'text-shadow:2px 4px 12px rgba(0,0,0,0.95), 0 8px 32px rgba(0,0,0,0.4)',
+    ].join(';');
+    document.body.appendChild(el);
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        el.style.opacity = '1';
+        el.style.transform = 'translate(-50%,-100%) scale(1)';
+        setTimeout(function () {
+          el.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+          el.style.opacity = '0';
+          el.style.transform = 'translate(-50%,-120%) scale(0.85)';
+          setTimeout(function () { el.remove(); }, 450);
+        }, 950);
+      });
+    });
+  }
+
+  prevBtn.addEventListener('click', function () { goTo(current - 1); showChupai(); });
+  nextBtn.addEventListener('click', function () { goTo(current + 1); showMopai(); });
+
+  track.addEventListener('touchstart', function (e) {
+    touchStartX = e.touches[0].clientX;
+  }, { passive: true });
+  track.addEventListener('touchend', function (e) {
+    var dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 48) goTo(current + (dx < 0 ? 1 : -1));
+  }, { passive: true });
+
+  goTo(0);
 })();
 </script>
 
