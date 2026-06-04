@@ -17,7 +17,7 @@
   .hero-band .hero-meta,
   .hero-band .hero-meta span { color: var(--cream) !important; }
   /* offset anchor targets so the sticky nav doesn't cover them */
-  #top, #mission, #contact { scroll-margin-top: 88px; }
+  #top, #mission, #events, #contact { scroll-margin-top: 88px; }
   /* cream active underline */
   .nav-links a { border-bottom: 1.5px solid transparent; transition: border-color 0.25s; }
   .nav-links a.active { border-bottom-color: rgb(245, 237, 216) !important; }
@@ -34,9 +34,9 @@
     </div>
     <div class="nav-links" style="color: rgb(245, 237, 216);">
       <a href="#top" style="color: rgb(245, 237, 216);">Home</a>
+      <a href="#events" style="color: rgb(245, 237, 216);">Events</a>
       <a href="#mission" style="color: rgb(245, 237, 216);">About</a>
       <a href="#contact" style="color: rgb(245, 237, 216);">Contact</a>
-      <a href="/board_index.html" style="color: rgb(245, 237, 216);">Game</a>
     </div>
   </div>
 </nav>
@@ -44,9 +44,9 @@
 <section class="hero-band" id="top">
   <div class="hero" data-screen-label="Intro">
     <div class="hero-grid" style="display: flex; justify-content: center; align-items: center; gap: 48px;">
-      <div style="width: fit-content;">
+      <div style="width: fit-content; margin-top: -25px;">
         <h1 class="hero-title" style="width: 100%;">
-          <span class="num" style="font-size: 200px; width: fit-content;"> 144</span>
+          <span class="num" style="font-size: 200px; width: fit-content; padding-left: 32px;">144</span>
           <span class="script" style="font-size: 200px">Tiles</span>
           <span class="num" style="font-size: 54px; width: 100%; text-align: center"> Mahjong Club</span>
         </h1>
@@ -62,12 +62,84 @@
   </div>
 </section>
 
+<section id="events" class="events-section">
+  <div class="about-hero" style="padding: 40px 32px 32px;">
+    <h2 class="title"><span style="color: rgb(155, 27, 27); font-size: 92px; font-weight: 500;">Upcoming</span> <span class="script" style="color: rgb(155, 27, 27); font-size: 92px">events</span></h2>
+  </div>
+  <div class="event-list">
+    <a class="event-card event-linkable" href="https://getpie.app/plans/9da4ca49-9965-49e2-bb4e-36bea46bb287" target="_blank" rel="noopener">
+      <div class="event-date-block">
+        <span class="event-month">JUN</span>
+        <span class="event-day">4</span>
+      </div>
+      <div class="event-body">
+        <div class="event-name">MAHJONG AT THE MARKET 2 🛒🀄️</div>
+        <div class="event-meta">
+          <span>📍 Gangnam Market</span>
+          <span class="dot">·</span>
+          <span>6–9pm</span>
+        </div>
+        <div style="display:flex;gap:6px;"><span class="event-badge">🇭🇰</span><span class="event-badge">FREE</span></div>
+      </div>
+      <div class="event-action">RSVP →</div>
+    </a>
+    <div class="event-card">
+      <div class="event-date-block">
+        <span class="event-month">JUN</span>
+        <span class="event-day">20</span>
+      </div>
+      <div class="event-body">
+        <div class="event-name">Mahjong in the Park 💐🀄️</div>
+        <div class="event-meta">
+          <span>📍 Mary Bartleme Park</span>
+          <span class="dot">·</span>
+          <span>11am–2pm</span>
+        </div>
+        <span class="event-badge">FREE</span>
+      </div>
+      <div class="event-action event-action-muted">RSVP coming soon</div>
+    </div>
+    <a class="event-card event-linkable" href="https://getpie.at/ecgbTUe8" target="_blank" rel="noopener">
+      <div class="event-date-block">
+        <span class="event-month">JUN</span>
+        <span class="event-day">22</span>
+      </div>
+      <div class="event-body">
+        <div class="event-name">MAHJONG AT THE MARKET 3 🛒🀄️</div>
+        <div class="event-meta">
+          <span>📍 Gangnam Market</span>
+          <span class="dot">·</span>
+          <span>6–9pm</span>
+        </div>
+        <div style="display:flex;gap:6px;"><span class="event-badge">🇭🇰</span><span class="event-badge">FREE</span></div>
+      </div>
+      <div class="event-action">RSVP →</div>
+    </a>
+    <div class="event-card">
+      <div class="event-date-block">
+        <span class="event-month">JUN</span>
+        <span class="event-day">29</span>
+      </div>
+      <div class="event-body">
+        <div class="event-name">MAG MAHJONG TAYO ☕️🀄️</div>
+        <div class="event-meta">
+          <span>📍 Side Practice Coffee</span>
+          <span class="dot">·</span>
+          <span>6–9pm</span>
+        </div>
+        <div style="display:flex;gap:6px;"><span class="event-badge">🇵🇭</span><span class="event-badge">FREE</span></div>
+      </div>
+      <div class="event-action event-action-muted">RSVP coming soon</div>
+    </div>
+  </div>
+</section>
+
 <section class="about-hero" id="mission" data-screen-label="About" style="padding: 48px 32px 0px;">
-  <h1 class="title"><span style="color: rgb(155, 27, 27); font-size: clamp(56px, 7vw, 96px); font-weight: 500;">Our</span> <span class="script" style="color: rgb(155, 27, 27); font-size: clamp(56px, 7vw, 96px)">mission</span></h1>
+  <h1 class="title"><span style="color: rgb(155, 27, 27); font-size: 92px; font-weight: 500;">Our</span> <span class="script" style="color: rgb(155, 27, 27); font-size: 92px">mission</span></h1>
 </section>
 
 <section class="about-body" style="padding: 16px 32px 40px;">
-  <div class="about-image" style="background-image: url('assets/photo-dsc-2.jpg'); width: 361px;"></div>
+  <div class="about-image" style="background-image: url('assets/photo-dsc-2-blurred.jpg'); width: 361px;"></div>
   <div class="about-text" style="max-width: calc(100% - 192px); font-family: Montserrat;">
     <p style="font-family: Montserrat; font-size: 18px; font-weight: 500; color: rgb(46, 46, 46); line-height: 1.7;"></p><div style="font-size: 18px; font-weight: 500;"><span style="font-family: &quot;DM Serif Display&quot;, serif; font-size: 4em; float: left; line-height: 0.7; padding-right: 10px; padding-top: 6px; color: var(--red); font-weight: 500;">W</span><span style="color: rgb(74, 42, 42); font-weight: 500;">e exist to reclaim and celebrate the stories behind mahjong, honoring its cultural roots while building a modern, inclusive community around it.</span></div><div><br></div><div style="font-size: 18px; color: rgb(74, 42, 42); font-weight: 500;">Through teaching traditional styles of mahjong, we aim to make the game accessible, engaging, and meaningful for everyone, from first-timers to lifelong players.</div><div><br></div><div style="font-size: 18px; color: rgb(74, 42, 42); font-weight: 500;">At 144 Tiles, we create spaces where people can show up as they are, connect across generations and backgrounds, and experience the joy, strategy, and cultural depth of the game together.</div><p></p>
   </div>
@@ -75,7 +147,7 @@
 
 <section class="services">
   <div class="about-hero" style="padding: 40px 32px 32px;">
-    <h2 class="title"><span style="color: rgb(155, 27, 27); font-size: clamp(56px, 7vw, 96px); font-weight: 500;">Our</span> <span class="script" style="color: rgb(155, 27, 27); font-size: clamp(56px, 7vw, 96px)">services</span></h2>
+    <h2 class="title"><span style="color: rgb(155, 27, 27); font-size: 92px; font-weight: 500;">Our</span> <span class="script" style="color: rgb(155, 27, 27); font-size: 92px">services</span></h2>
   </div>
   <ul class="services-list">
     <li style="font-weight: 400; font-size: 18px;">Corporate events</li>
@@ -89,7 +161,7 @@
 
 <section class="testimonials testimonials-tight" data-screen-label="Testimonials" style="padding: 0px 32px 24px">
   <div class="about-hero" style="padding: 40px 32px 0px">
-    <h2 class="title" style="padding: 0px 0px 16px;"><span style="color: rgb(155, 27, 27); font-size: clamp(56px, 7vw, 96px); font-weight: 500;">Client</span> <span class="script" style="color: rgb(155, 27, 27); font-size: clamp(56px, 7vw, 96px)">testimonies</span></h2>
+    <h2 class="title" style="padding: 0px 0px 16px;"><span style="color: rgb(155, 27, 27); font-size: 92px; font-weight: 500;">Client</span> <span class="script" style="color: rgb(155, 27, 27); font-size: 92px">testimonies</span></h2>
   </div>
   <div class="testimonial-grid">
     <div class="testimonial" style="padding: 32px 44px 48px">
@@ -111,10 +183,22 @@
   </div>
 </section>
 
-<section class="about-strip" style="padding: 10px 32px 0px; margin: 48px auto 80px; gap: 38px;">
-  <div class="cell" style="background-image: url('assets/photo-gangnam-12.jpg');"></div>
-  <div class="cell" style="background-image: url('assets/photo-dsc-3.jpg');"></div>
-  <div class="cell" style="background-image: url('assets/photo-spc.jpg');"></div>
+<section class="press-section">
+  <p class="press-label">As seen in</p>
+  <div class="press-logos">
+    <a href="https://blockclubchicago.org/2026/02/17/mahjong-is-having-a-moment-and-uniting-chicagoans-in-chinatown-and-beyond/" target="_blank" rel="noopener" class="press-logo-link">
+      <img src="assets/logo-blockclub.png" alt="Block Club Chicago">
+    </a>
+    <a href="https://www.chicagotribune.com/2026/05/07/mahjong-community-chicago/" target="_blank" rel="noopener" class="press-logo-link">
+      <img src="assets/logo-tribune.png" alt="Chicago Tribune">
+    </a>
+  </div>
+</section>
+
+<section class="about-strip" style="padding: 10px 32px 0px; margin: 48px auto 80px; gap: 0;">
+  <div class="cell" style="background-image: url('assets/photo-gangnam-12.jpg'); transform: rotate(-8.4deg); position: relative; z-index: 1;"></div>
+  <div class="cell" style="background-image: url('assets/photo-dsc-3-blurred.jpg'); transform: rotate(5.6deg); position: relative; z-index: 2; margin-left: -30px;"></div>
+  <div class="cell" style="background-image: url('assets/photo-spc.jpg'); transform: rotate(-3.2deg); position: relative; z-index: 3; margin-left: -30px;"></div>
 </section>
 
 <section id="contact" class="contact no-watermark" data-screen-label="Contact" style="background-color: rgb(132, 0, 0)">
