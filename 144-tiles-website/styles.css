@@ -783,6 +783,7 @@ a { color: inherit; }
 
   /* --- Section heading banners --- */
   .about-hero { padding: 40px 24px 16px !important; }
+  .about-hero .title span { font-size: clamp(44px, 12vw, 72px) !important; }
 
   /* --- SERVICES --- */
   .services { padding: 8px 24px 32px !important; }
