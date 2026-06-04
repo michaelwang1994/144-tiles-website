@@ -230,7 +230,9 @@
   var ROT_SCALE = 0.1;   // sympathetic rotation degrees per pixel dragged
   var RESIST    = 0.72;  // drag resistance
 
-  var active = -1, startX = 0, startY = 0;
+  var active = -1, startX = 0, startY = 0, isTouch = false;
+
+  function onPhoto() { return isTouch || window.innerHeight > window.innerWidth; }
 
   function ePos(e) {
     return e.touches ? { x: e.touches[0].clientX, y: e.touches[0].clientY }
@@ -266,16 +268,28 @@
     }
   }
 
-  function showChi() {
+  function showChi(idx) {
     var old = document.getElementById('chi-label');
     if (old) old.remove();
-    var strip = document.querySelector('.about-strip');
-    var rect = strip.getBoundingClientRect();
-    var x = rect.left + window.scrollX + rect.width / 2;
-    var y = rect.top + window.scrollY - 25;
+    var x, y, originY;
+    if (onPhoto()) {
+      var r = cells[idx].getBoundingClientRect();
+      x = r.left + window.scrollX + r.width / 2;
+      y = r.top + window.scrollY + r.height / 2;
+      originY = 'center';
+    } else {
+      var strip = document.querySelector('.about-strip');
+      var rect = strip.getBoundingClientRect();
+      x = rect.left + window.scrollX + rect.width / 2;
+      y = rect.top + window.scrollY - 25;
+      originY = 'bottom';
+    }
     var el = document.createElement('div');
     el.id = 'chi-label';
     el.textContent = '吃 (chi)';
+    var initTransform = onPhoto() ? 'translate(-50%,-50%) scale(0.5)' : 'translate(-50%,-100%) scale(0.5)';
+    var endTransform  = onPhoto() ? 'translate(-50%,-50%) scale(1)'   : 'translate(-50%,-100%) scale(1)';
+    var outTransform  = onPhoto() ? 'translate(-50%,-70%) scale(0.85)' : 'translate(-50%,-120%) scale(0.85)';
     el.style.cssText = [
       'position:absolute',
       'pointer-events:none',
@@ -286,8 +300,8 @@
       'color:rgb(132,0,0)',
       'left:' + x + 'px',
       'top:' + y + 'px',
-      'transform:translate(-50%,-100%) scale(0.5)',
-      'transform-origin:center bottom',
+      'transform:' + initTransform,
+      'transform-origin:center ' + originY,
       'opacity:0',
       'transition:opacity 0.2s ease, transform 0.45s cubic-bezier(0.34,1.56,0.64,1)',
       'white-space:nowrap',
@@ -298,11 +312,11 @@
     requestAnimationFrame(function () {
       requestAnimationFrame(function () {
         el.style.opacity = '1';
-        el.style.transform = 'translate(-50%,-100%) scale(1)';
+        el.style.transform = endTransform;
         setTimeout(function () {
           el.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
           el.style.opacity = '0';
-          el.style.transform = 'translate(-50%,-120%) scale(0.85)';
+          el.style.transform = outTransform;
           setTimeout(function () { el.remove(); }, 450);
         }, 950);
       });
@@ -315,16 +329,24 @@
     cell.style.webkitUserSelect = 'none';
     cell.style.cursor = cursors[idx];
 
-    function start(e) {
+    cell.addEventListener('mousedown', function (e) {
+      isTouch = false;
       active = idx;
       var p = ePos(e);
       startX = p.x; startY = p.y;
       cells.forEach(function (c) { c.style.transition = 'none'; });
       cell.style.zIndex = '100';
       e.preventDefault();
-    }
-    cell.addEventListener('mousedown', start);
-    cell.addEventListener('touchstart', start, { passive: false });
+    });
+    cell.addEventListener('touchstart', function (e) {
+      isTouch = true;
+      active = idx;
+      var p = ePos(e);
+      startX = p.x; startY = p.y;
+      cells.forEach(function (c) { c.style.transition = 'none'; });
+      cell.style.zIndex = '100';
+      e.preventDefault();
+    }, { passive: false });
   });
 
   window.addEventListener('mousemove', function (e) {
@@ -353,7 +375,7 @@
       cells[idx].style.zIndex = BASE_Z[idx];
       cells.forEach(function (c) { c.style.transition = ''; });
     }, 800);
-    showChi();
+    showChi(idx);
   }
 
   window.addEventListener('mouseup', end);
@@ -398,8 +420,10 @@
   var allImgs = Array.prototype.slice.call(main.parentNode.querySelectorAll('.about-image'));
   var copies = allImgs.filter(function (el) { return el !== main; });
 
-  var dragging = false, startX = 0;
+  var dragging = false, startX = 0, isTouch = false;
   var BASE_OFFSET = -25;
+
+  function onPhoto() { return isTouch || window.innerHeight > window.innerWidth; }
 
   main.style.transform = 'translateX(' + BASE_OFFSET + 'px)';
 
@@ -407,8 +431,22 @@
 
   function showPeng() {
     var rect = main.parentNode.getBoundingClientRect();
-    var x = rect.left + window.scrollX;
-    var y = rect.top + window.scrollY;
+    var x, y, initT, endT, outT, origin;
+    if (onPhoto()) {
+      x = rect.left + window.scrollX + rect.width / 2;
+      y = rect.top + window.scrollY + rect.height / 2;
+      initT = 'translate(-50%,-50%) scale(0.5)';
+      endT  = 'translate(-50%,-50%) scale(1)';
+      outT  = 'translate(-50%,-70%) scale(0.85)';
+      origin = 'center center';
+    } else {
+      x = rect.left + window.scrollX;
+      y = rect.top + window.scrollY;
+      initT = 'translate(0,-110%) scale(0.5)';
+      endT  = 'translate(0,-110%) scale(1)';
+      outT  = 'translate(0,-130%) scale(0.85)';
+      origin = 'left bottom';
+    }
     var el = document.createElement('div');
     el.textContent = '碰 (Pèng)';
     el.style.cssText = [
@@ -421,8 +459,8 @@
       'color:rgb(132,0,0)',
       'left:' + x + 'px',
       'top:' + y + 'px',
-      'transform:translate(0, -110%) scale(0.5)',
-      'transform-origin:left bottom',
+      'transform:' + initT,
+      'transform-origin:' + origin,
       'opacity:0',
       'transition:opacity 0.2s ease, transform 0.45s cubic-bezier(0.34,1.56,0.64,1)',
       'white-space:nowrap',
@@ -433,11 +471,11 @@
     requestAnimationFrame(function () {
       requestAnimationFrame(function () {
         el.style.opacity = '1';
-        el.style.transform = 'translate(0, -110%) scale(1)';
+        el.style.transform = endT;
         setTimeout(function () {
           el.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
           el.style.opacity = '0';
-          el.style.transform = 'translate(0, -130%) scale(0.85)';
+          el.style.transform = outT;
           setTimeout(function () { el.remove(); }, 450);
         }, 950);
       });
@@ -448,16 +486,22 @@
     copies.forEach(function (c) { c.style.transition = val; });
   }
 
-  function start(e) {
+  main.addEventListener('mousedown', function (e) {
+    isTouch = false;
     dragging = true;
     startX = cx(e);
     main.style.transition = 'none';
     setCopiesToTransition('none');
     e.preventDefault();
-  }
-
-  main.addEventListener('mousedown', start);
-  main.addEventListener('touchstart', start, { passive: false });
+  });
+  main.addEventListener('touchstart', function (e) {
+    isTouch = true;
+    dragging = true;
+    startX = cx(e);
+    main.style.transition = 'none';
+    setCopiesToTransition('none');
+    e.preventDefault();
+  }, { passive: false });
 
   function handleDrag(e) {
     if (!dragging) return;
