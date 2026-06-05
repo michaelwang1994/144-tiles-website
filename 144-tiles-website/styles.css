@@ -531,6 +531,7 @@ a { color: inherit; }
   .testimonials { padding: 64px 24px; }
   .testimonials .section-title { margin-bottom: 40px; }
   .testimonial { padding: 36px 28px; }
+  .testimonial-track .testimonial { flex: 0 0 100%; }
 }
 
 /* ---- SERVICES ---- */

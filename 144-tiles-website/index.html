@@ -624,26 +624,34 @@
   var cards = Array.prototype.slice.call(track.querySelectorAll('.testimonial'));
   var current = 0;
   var touchStartX = 0;
-  var perPage = 2;
-  var maxPos = cards.length - perPage;
-  var dotCount = maxPos + 1;
+  var perPage, maxPos, dots;
 
-  var dots = Array.from({ length: dotCount }, function (_, i) {
-    var d = document.createElement('button');
-    d.className = 'carousel-dot';
-    d.setAttribute('aria-label', 'Testimonial ' + (i + 1));
-    d.addEventListener('click', function () { goTo(i); });
-    dotsContainer.appendChild(d);
-    return d;
-  });
+  function buildDots() {
+    dotsContainer.innerHTML = '';
+    dots = Array.from({ length: maxPos + 1 }, function (_, i) {
+      var d = document.createElement('button');
+      d.className = 'carousel-dot';
+      d.setAttribute('aria-label', 'Testimonial ' + (i + 1));
+      d.addEventListener('click', function () { goTo(i); });
+      dotsContainer.appendChild(d);
+      return d;
+    });
+  }
 
   function goTo(n) {
     n = Math.max(0, Math.min(n, maxPos));
     current = n;
-    track.style.transform = 'translateX(-' + (50 * n) + '%)';
+    track.style.transform = 'translateX(-' + (100 / perPage * n) + '%)';
     dots.forEach(function (d, i) { d.classList.toggle('active', i === n); });
     prevBtn.disabled = n === 0;
     nextBtn.disabled = n === maxPos;
+  }
+
+  function initCarousel() {
+    perPage = window.innerWidth <= 820 ? 1 : 2;
+    maxPos = cards.length - perPage;
+    buildDots();
+    goTo(Math.min(current, maxPos));
   }
 
   function showMopai() {
@@ -741,7 +749,13 @@
     if (Math.abs(dx) > 48) goTo(current + (dx < 0 ? 1 : -1));
   }, { passive: true });
 
-  goTo(0);
+  var resizeTimer;
+  window.addEventListener('resize', function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(initCarousel, 150);
+  });
+
+  initCarousel();
 })();
 </script>
 
