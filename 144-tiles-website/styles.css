@@ -11,7 +11,7 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; overflow-x: clip; }
 
 body {
   background: var(--cream);
@@ -813,6 +813,12 @@ a { color: inherit; }
     flex-direction: column !important;
     gap: 32px !important;
     padding: 16px 24px 40px !important;
+  }
+  .about-body > div:not(.about-text) {
+    width: 100% !important;
+    max-width: 380px !important;
+    flex: 0 0 auto !important;
+    margin: 0 auto !important;
   }
   .about-body > .about-image,
   .about-image {

@@ -327,7 +327,7 @@
       'font-family:"Crimson Pro",serif',
       'font-size:44px',
       'font-style:italic',
-      'color:rgb(132,0,0)',
+      'color:' + (onPhoto() ? 'rgb(245,237,216)' : 'rgb(132,0,0)'),
       'left:' + x + 'px',
       'top:' + y + 'px',
       'transform:' + initTransform,
@@ -360,6 +360,7 @@
     cell.style.cursor = cursors[idx];
 
     cell.addEventListener('mousedown', function (e) {
+      if (idx === 1 && window.innerHeight > window.innerWidth) return;
       isTouch = false;
       active = idx;
       var p = ePos(e);
@@ -369,6 +370,7 @@
       e.preventDefault();
     });
     cell.addEventListener('touchstart', function (e) {
+      if (idx === 1) return;
       isTouch = true;
       active = idx;
       var p = ePos(e);
@@ -486,7 +488,7 @@
       'font-family:"Crimson Pro",serif',
       'font-size:52px',
       'font-style:italic',
-      'color:rgb(132,0,0)',
+      'color:' + (onPhoto() ? 'rgb(245,237,216)' : 'rgb(132,0,0)'),
       'left:' + x + 'px',
       'top:' + y + 'px',
       'transform:' + initT,
