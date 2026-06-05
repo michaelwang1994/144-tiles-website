@@ -261,6 +261,8 @@
   var RESIST    = 0.72;  // drag resistance
 
   var active = -1, startX = 0, startY = 0, isTouch = false;
+  var scales = [1, 1, 1];
+  var startCellRect = null;
 
   function onPhoto() { return isTouch || window.innerHeight > window.innerWidth; }
 
@@ -272,10 +274,14 @@
   function setCell(i, dx, dy, rot) {
     var r = (rot === undefined) ? BASE_ROT[i] : rot;
     var t = (dx || dy) ? ' translate(' + (dx || 0) + 'px,' + (dy || 0) + 'px)' : '';
-    cells[i].style.transform = 'rotate(' + r + 'deg)' + t;
+    cells[i].style.transform = 'rotate(' + r + 'deg)' + t + ' scale(' + scales[i] + ')';
   }
 
   function handleMove(rawDx, rawDy) {
+    if (onPhoto() && startCellRect) {
+      if (active === 0) rawDx = Math.max(rawDx, -startCellRect.left / RESIST);
+      if (active === 2) rawDx = Math.min(rawDx, (window.innerWidth - startCellRect.right) / RESIST);
+    }
     if (active === 0) {
       // left photo: only leftward
       var dx = Math.min(0, rawDx) * RESIST;
@@ -363,26 +369,33 @@
       if (idx === 1 && window.innerHeight > window.innerWidth) return;
       isTouch = false;
       active = idx;
+      startCellRect = cell.getBoundingClientRect();
       var p = ePos(e);
       startX = p.x; startY = p.y;
-      cells.forEach(function (c) { c.style.transition = 'none'; });
       cell.style.zIndex = '100';
+      cell.style.transition = 'transform 0.1s ease-out';
+      scales[idx] = 0.95;
+      setCell(idx, 0, 0);
       e.preventDefault();
     });
     cell.addEventListener('touchstart', function (e) {
       if (idx === 1) return;
       isTouch = true;
       active = idx;
+      startCellRect = cell.getBoundingClientRect();
       var p = ePos(e);
       startX = p.x; startY = p.y;
-      cells.forEach(function (c) { c.style.transition = 'none'; });
       cell.style.zIndex = '100';
+      cell.style.transition = 'transform 0.1s ease-out';
+      scales[idx] = 0.95;
+      setCell(idx, 0, 0);
       e.preventDefault();
     }, { passive: false });
   });
 
   window.addEventListener('mousemove', function (e) {
     if (active < 0) return;
+    cells.forEach(function (c) { c.style.transition = 'none'; });
     var p = ePos(e);
     handleMove(p.x - startX, p.y - startY);
   });
@@ -390,6 +403,7 @@
   window.addEventListener('touchmove', function (e) {
     if (active < 0) return;
     e.preventDefault();
+    cells.forEach(function (c) { c.style.transition = 'none'; });
     var p = ePos(e);
     handleMove(p.x - startX, p.y - startY);
   }, { passive: false });
@@ -398,10 +412,11 @@
     if (active < 0) return;
     var idx = active;
     active = -1;
-    var spring = 'transform 0.75s cubic-bezier(0.34,1.56,0.64,1)';
+    scales[idx] = 1;
+    var spring = 'transform 0.4s cubic-bezier(0.34,1.56,0.64,1)';
     cells.forEach(function (c, i) {
       c.style.transition = spring;
-      c.style.transform = 'rotate(' + BASE_ROT[i] + 'deg)';
+      setCell(i, 0, 0);
     });
     setTimeout(function () {
       cells[idx].style.zIndex = BASE_Z[idx];
@@ -452,12 +467,16 @@
   var allImgs = Array.prototype.slice.call(main.parentNode.querySelectorAll('.about-image'));
   var copies = allImgs.filter(function (el) { return el !== main; });
 
-  var dragging = false, startX = 0, isTouch = false;
+  var dragging = false, startX = 0, isTouch = false, imgScale = 1;
   var BASE_OFFSET = -25;
 
   function onPhoto() { return isTouch || window.innerHeight > window.innerWidth; }
 
-  main.style.transform = 'translateX(' + BASE_OFFSET + 'px)';
+  function setMain(dx) {
+    main.style.transform = 'translateX(' + dx + 'px) scale(' + imgScale + ')';
+  }
+
+  setMain(BASE_OFFSET);
 
   function cx(e) { return e.touches ? e.touches[0].clientX : e.clientX; }
 
@@ -522,27 +541,32 @@
     isTouch = false;
     dragging = true;
     startX = cx(e);
-    main.style.transition = 'none';
     setCopiesToTransition('none');
+    main.style.transition = 'transform 0.1s ease-out';
+    imgScale = 0.95;
+    setMain(BASE_OFFSET);
     e.preventDefault();
   });
   main.addEventListener('touchstart', function (e) {
     isTouch = true;
     dragging = true;
     startX = cx(e);
-    main.style.transition = 'none';
     setCopiesToTransition('none');
+    main.style.transition = 'transform 0.1s ease-out';
+    imgScale = 0.95;
+    setMain(BASE_OFFSET);
     e.preventDefault();
   }, { passive: false });
 
   function handleDrag(e) {
     if (!dragging) return;
+    main.style.transition = 'none';
     var rawDx = cx(e) - startX;
     if (rawDx > 0 && (isTouch || window.innerHeight > window.innerWidth)) {
       var slack = window.innerWidth - main.parentNode.getBoundingClientRect().right;
       rawDx = Math.min(rawDx, slack / 0.36);
     }
-    main.style.transform = 'translateX(' + (BASE_OFFSET + rawDx * 0.72) + 'px)';
+    setMain(BASE_OFFSET + rawDx * 0.72);
     // copies[1] (directly under main) moves at 50% of main
     copies[1].style.transform = 'translateX(' + (rawDx * 0.36) + 'px)';
   }
@@ -550,14 +574,15 @@
   window.addEventListener('mousemove', handleDrag);
   window.addEventListener('touchmove', handleDrag, { passive: false });
 
-  var SPRING = 'transform 0.75s cubic-bezier(0.34,1.56,0.64,1)';
+  var SPRING = 'transform 0.4s cubic-bezier(0.34,1.56,0.64,1)';
 
   function end() {
     if (!dragging) return;
     dragging = false;
+    imgScale = 1;
     // spring both main and copies[1] back simultaneously
     main.style.transition = SPRING;
-    main.style.transform = 'translateX(' + BASE_OFFSET + 'px)';
+    setMain(BASE_OFFSET);
     copies[1].style.transition = SPRING;
     copies[1].style.transform = 'translateX(0)';
     setTimeout(function () {
@@ -576,6 +601,22 @@
 (function () {
   var heroImg = document.getElementById('hero-img');
   if (!heroImg) return;
+
+  var HERO_SPRING = 'transform 0.4s cubic-bezier(0.34,1.56,0.64,1)';
+  heroImg.addEventListener('mousedown', function () {
+    heroImg.style.transition = 'transform 0.1s ease-out';
+    heroImg.style.transform = 'scale(0.98)';
+  });
+  heroImg.addEventListener('touchstart', function () {
+    heroImg.style.transition = 'transform 0.1s ease-out';
+    heroImg.style.transform = 'scale(0.98)';
+  }, { passive: true });
+  function heroRelease() {
+    heroImg.style.transition = HERO_SPRING;
+    heroImg.style.transform = 'scale(1)';
+  }
+  window.addEventListener('mouseup', heroRelease);
+  window.addEventListener('touchend', heroRelease);
 
   heroImg.addEventListener('click', function (e) {
     var old = document.getElementById('hule-label');
