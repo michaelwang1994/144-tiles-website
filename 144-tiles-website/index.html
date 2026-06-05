@@ -538,6 +538,10 @@
   function handleDrag(e) {
     if (!dragging) return;
     var rawDx = cx(e) - startX;
+    if (rawDx > 0 && (isTouch || window.innerHeight > window.innerWidth)) {
+      var slack = window.innerWidth - main.parentNode.getBoundingClientRect().right;
+      rawDx = Math.min(rawDx, slack / 0.36);
+    }
     main.style.transform = 'translateX(' + (BASE_OFFSET + rawDx * 0.72) + 'px)';
     // copies[1] (directly under main) moves at 50% of main
     copies[1].style.transform = 'translateX(' + (rawDx * 0.36) + 'px)';
