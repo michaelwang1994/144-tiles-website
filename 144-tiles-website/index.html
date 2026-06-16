@@ -264,7 +264,6 @@
 
   function handleMove(rawDx, rawDy) {
     if (onPhoto() && startCellRect) {
-      if (active === 0) rawDx = Math.max(rawDx, -startCellRect.left / RESIST);
       if (active === 2) rawDx = Math.min(rawDx, (window.innerWidth - startCellRect.right) / RESIST);
     }
     if (active === 0) {
