@@ -130,6 +130,7 @@ function updateTileUI() {
 
   const copyHand = $('copy-hand') as HTMLButtonElement | null;
   if (copyHand) copyHand.disabled = !isValidWinningHand(selected) || getTotalFan() === 0;
+  renderReferenceTotal();
 }
 
 function makeRemovableTile(t: { id: string; c: string }, isFlower: boolean) {
@@ -862,6 +863,14 @@ function getTotalFan(): number {
     : Math.min(13, handResult.fan + windDragonTotal + flowerTotal + winningFan);
 }
 
+function renderReferenceTotal() {
+  const el = $('fan-reference-total');
+  if (!el) return;
+  const totalFan = getTotalFan();
+  const totalPoints = POINTS_MAP[Math.min(totalFan, 13)];
+  el.textContent = `${totalFan} fan / ${totalPoints} pts`;
+}
+
 async function copyHandToClipboard() {
   const lines: string[] = [];
   const tiles = getSortedTiles(selected);
@@ -915,10 +924,7 @@ async function copyHandToClipboard() {
   }
 }
 
-// Event listeners
-const clearTiles = $('clear-tiles');
-if (clearTiles) {
-  clearTiles.addEventListener('click', () => {
+function clearHand() {
   Object.keys(selected).forEach((k) => { delete selected[k]; });
   seatFlowerOverride = null;
   dragonOverride = null;
@@ -929,8 +935,13 @@ if (clearTiles) {
   renderWinningConditions();
   renderHandPatterns();
   renderWindDragonPoints();
-});
 }
+
+// Event listeners
+['clear-tiles', 'clear-hand-top'].forEach((id) => {
+  const btn = $(id);
+  if (btn) btn.addEventListener('click', clearHand);
+});
 
 const copyHand = $('copy-hand');
 if (copyHand) {

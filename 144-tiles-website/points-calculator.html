@@ -84,8 +84,31 @@
   border-radius: 0;
   background: transparent;
 }
-.fan-reference-sticky .panel-title { margin-bottom: 10px; }
+.fan-reference-sticky .panel-title {
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
 .fan-reference-sticky .fan-table { margin: 0; }
+.fan-reference-hidden .table-panel > *:not(.panel-title) { display: none; }
+.tile-panel-title { justify-content: space-between; }
+.tile-panel-title .clear-hand-btn { font-size: 11px; padding: 5px 10px; }
+.fan-reference-toggle {
+  font-size: 11px;
+  padding: 5px 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.fan-reference-total {
+  display: none;
+  margin-left: 8px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+.fan-reference-hidden .fan-reference-total { display: inline; }
 .fan-reference-hand {
   display: flex;
   align-items: center;
@@ -183,6 +206,7 @@
 }
 .fan-reference-hand-tiles .tile.removable:active { transform: translateY(1px); }
 .clear-hand-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.fan-reference-hand .clear-hand-btn { font-size: 11px; padding: 6px 10px; }
 .fan-potential { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
 .fan-table-scroll {
   overflow-x: auto;
@@ -322,7 +346,10 @@ footer.calc-footer { padding-bottom: 160px; }
 
 <section class="calc-section" style="padding-top: 0;">
   <div class="tile-panel">
-    <div class="panel-title">🀫 Select your tiles</div>
+    <div class="panel-title tile-panel-title">
+      <span>🀫 Select your tiles</span>
+      <button id="clear-hand-top" class="clear-hand-btn" type="button">Clear hand</button>
+    </div>
     <div class="panel-subtitle">Click a tile up to 4 times for regular tiles, once for flowers.</div>
     <div id="tile-selector"></div>
   </div>
@@ -365,7 +392,13 @@ footer.calc-footer { padding-bottom: 160px; }
 
 <section class="calc-section fan-reference-sticky" style="padding-top: 0;">
   <div class="table-panel">
-    <div class="panel-title">Fan → Points reference</div>
+    <div class="panel-title">
+      <span>
+        My points
+        <span class="fan-reference-total" id="fan-reference-total"></span>
+      </span>
+      <button id="toggle-fan-reference" class="clear-hand-btn fan-reference-toggle" type="button" aria-expanded="true">Hide panel</button>
+    </div>
     <div class="fan-table-scroll">
       <table class="fan-table" id="fan-table">
         <thead><tr><th>Fan</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th><th>11</th><th>12</th><th>13+</th></tr></thead>
@@ -418,6 +451,16 @@ footer.calc-footer { padding-bottom: 160px; }
   window.addEventListener('resize', updatePadding);
   if (window.ResizeObserver) {
     new ResizeObserver(updatePadding).observe(panel);
+  }
+
+  const toggleBtn = document.getElementById('toggle-fan-reference');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      panel.classList.toggle('fan-reference-hidden');
+      const hidden = panel.classList.contains('fan-reference-hidden');
+      toggleBtn.textContent = hidden ? 'Show panel' : 'Hide panel';
+      toggleBtn.setAttribute('aria-expanded', String(!hidden));
+    });
   }
 })();
 </script>
