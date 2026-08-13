@@ -115,13 +115,13 @@
   flex-wrap: wrap;
   gap: 4px;
 }
-.fan-reference-hand-tiles .tile {
-  width: 36px;
-  height: 48px;
-  font-size: 14px;
+.fan-reference-hand-tiles .tile.selected {
+  width: clamp(16px, 8vw, 42px);
+  height: clamp(22px, 10.5vw, 56px);
+  font-size: clamp(12px, 5vw, 28px);
 }
-.fan-reference-hand-tiles .tile-glyph { font-size: 18px; }
-.fan-reference-hand-tiles .tile-label { font-size: 8px; }
+.fan-reference-hand-tiles .tile.selected .tile-glyph { font-size: clamp(16px, 8vw, 45px); }
+.fan-reference-hand-tiles .tile.selected .tile-label { font-size: clamp(6px, 1.5vw, 9px); }
 .fan-breakdown {
   display: flex;
   align-items: center;
@@ -258,9 +258,8 @@ footer.calc-footer { padding-bottom: 160px; }
   .fan-reference-sticky .fan-table th,
   .fan-reference-sticky .fan-table td { padding: 6px 4px; }
   .fan-breakdown { font-size: 11px; gap: 6px 8px; }
-  .fan-reference-hand-tiles .tile { width: 28px; height: 38px; font-size: 12px; }
-  .fan-reference-hand-tiles .tile-glyph { font-size: 16px; }
-  .fan-reference-hand-tiles .tile-label { font-size: 7px; }
+  .fan-reference-hand { flex-wrap: wrap; gap: 8px 12px; }
+  .fan-reference-hand-content { flex-basis: 100%; min-width: 0; }
   footer.calc-footer { padding-bottom: 130px; }
 }
 </style>
