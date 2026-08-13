@@ -378,16 +378,20 @@ describe('getWindDragonFan', () => {
 });
 
 describe('isStrictlyConcealedHand', () => {
-  it('returns true for Seven Pairs', () => {
-    expect(isStrictlyConcealedHand({ 'seven-pairs': true })).toBe(true);
+  it('returns false for Seven Pairs', () => {
+    expect(isStrictlyConcealedHand({ 'seven-pairs': true })).toBe(false);
   });
 
-  it('returns true for Self Triplets', () => {
-    expect(isStrictlyConcealedHand({ 'self-triplets': true })).toBe(true);
+  it('returns false for Self Triplets', () => {
+    expect(isStrictlyConcealedHand({ 'self-triplets': true })).toBe(false);
   });
 
-  it('returns true for Nine Gates', () => {
-    expect(isStrictlyConcealedHand({ 'nine-gates': true })).toBe(true);
+  it('returns false for Nine Gates', () => {
+    expect(isStrictlyConcealedHand({ 'nine-gates': true })).toBe(false);
+  });
+
+  it('returns false for Thirteen Orphans', () => {
+    expect(isStrictlyConcealedHand({ 'thirteen-orphans': true })).toBe(false);
   });
 
   it('returns false for other hands', () => {

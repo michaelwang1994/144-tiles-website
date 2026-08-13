@@ -163,6 +163,10 @@
   font-size: 11px;
   font-weight: 500;
 }
+.fan-condition-tag.auto-detected {
+  background: var(--red);
+  color: #fff;
+}
 .fan-condition-empty {
   color: rgba(74,42,42,0.55);
   font-style: italic;
@@ -175,6 +179,67 @@
   border-color: var(--red);
 }
 .fan-reference-hand-tiles .tile.removable:active { transform: translateY(1px); }
+.clear-hand-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.fan-potential { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 200;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+}
+.modal-content {
+  background: var(--cream, #fff);
+  border-radius: 12px;
+  width: auto;
+  min-width: 0;
+  max-width: min(90vw, 720px);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  margin: auto 0;
+}
+.modal-body {
+  padding: 16px 20px;
+  min-width: 0;
+}
+.modal-body .hand-list {
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 600px) {
+  .modal-body .hand-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.modal-body .hand-item { min-width: 0; }
+.modal-body .hand-item .hand-desc,
+.modal-body .hand-item .hand-fan { white-space: normal; }
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(155,27,27,0.1);
+}
+.modal-header h3 {
+  margin: 0;
+  font-family: 'DM Serif Display', serif;
+  font-size: 20px;
+  color: var(--ink);
+}
+.modal-close {
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+@media (max-width: 700px) {
+  .modal-body { padding: 12px 16px; }
+}
 footer.calc-footer { padding-bottom: 160px; }
 @media (max-width: 700px) {
   .fan-reference-sticky .table-panel { padding: 12px 16px; }
@@ -210,6 +275,7 @@ footer.calc-footer { padding-bottom: 160px; }
     <div>
       <h1 class="hero-title"><span class="script">Points</span> Calculator</h1>
       <p class="hero-tagline" style="max-width: 46ch; margin-left: auto; margin-right: auto;">Select your tiles to build your hand, then use the fan-to-points reference to score it.</p>
+      <p class="hero-tagline" style="max-width: 52ch; margin-left: auto; margin-right: auto; font-size: 15px; color: var(--cream); margin-top: 12px;">Our recommendation is to add tiles as they are revealed from your hand to keep track of what remaining potential hands can be formed.</p>
     </div>
   </div>
 </section>
@@ -289,31 +355,36 @@ footer.calc-footer { padding-bottom: 160px; }
     <div class="panel-title">Fan → Points reference</div>
     <table class="fan-table" id="fan-table">
       <thead><tr><th>Fan</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th><th>11</th><th>12</th><th>13+</th></tr></thead>
-      <tbody><tr><th>Points</th><td>1</td><td>2</td><td>4</td><td>8</td><td>16</td><td>24</td><td>32</td><td>48</td><td>64</td><td>96</td><td>128</td><td>192</td><td>256</td><td>384</td></tr></tbody>
+      <tbody><tr><th>Points</th><td>0</td><td>2</td><td>4</td><td>8</td><td>16</td><td>24</td><td>32</td><td>48</td><td>64</td><td>96</td><td>128</td><td>192</td><td>256</td><td>384</td></tr></tbody>
     </table>
     <div class="fan-reference-hand" id="fan-reference-hand">
       <span class="fan-reference-hand-label">Your hand</span>
       <button id="clear-tiles" class="clear-hand-btn">Clear tiles</button>
+      <button id="copy-hand" class="clear-hand-btn" type="button" disabled>Copy hand</button>
       <span class="fan-reference-hand-content" id="fan-reference-hand-content"></span>
     </div>
-    <div class="fan-breakdown" id="fan-breakdown">
-      <span class="fan-breakdown-item" id="breakdown-hand">Hand: 0</span>
-      <span class="fan-breakdown-separator">+</span>
-      <span class="fan-breakdown-item" id="breakdown-wind">Wind &amp; Dragon: 0</span>
-      <span class="fan-breakdown-separator">+</span>
-      <span class="fan-breakdown-item" id="breakdown-flower">Flower: 0</span>
-      <span class="fan-breakdown-separator">+</span>
-      <span class="fan-breakdown-item" id="breakdown-winning">Winning: 0</span>
-      <span class="fan-breakdown-separator">=</span>
-      <span class="fan-breakdown-total" id="breakdown-total">Total: 0 fan</span>
-    </div>
     <div class="fan-conditions" id="fan-conditions"></div>
+    <div class="fan-potential" id="fan-potential">
+      <button id="potential-toggle" class="clear-hand-btn" type="button">Analyze potential hands</button>
+    </div>
   </div>
 </section>
 
 <footer class="calc-footer">
   <a href="index.html">← Back to 144 Tiles</a>
 </footer>
+
+<div class="modal-overlay" id="potential-modal" style="display: none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Potential hands</h3>
+      <button id="potential-close" class="modal-close" type="button" aria-label="Close">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="hand-list" id="potential-hands"></div>
+    </div>
+  </div>
+</div>
 
 <script type="module" src="./src/points-calculator-ui.ts"></script>
 </body>

@@ -932,6 +932,13 @@ a { color: inherit; }
   background: transparent; color: var(--red); cursor: pointer; transition: all 0.2s;
 }
 .clear-hand-btn:hover { background: var(--red); color: var(--cream); }
+.sample-hand-btn {
+  font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 600;
+  padding: 4px 10px; border-radius: 4px; border: 1.5px solid var(--red);
+  background: transparent; color: var(--red); cursor: pointer; transition: all 0.2s;
+  margin-left: 8px; white-space: nowrap;
+}
+.sample-hand-btn:hover { background: var(--red); color: var(--cream); }
 
 .hand-category { margin-bottom: 22px; }
 .hand-category-title { font-family: 'DM Serif Display', serif; font-size: 17px; color: var(--ink); margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid rgba(155,27,27,0.1); }
@@ -1035,4 +1042,21 @@ a { color: inherit; }
   content: '✓ ';
   color: var(--red);
   font-weight: 700;
+}
+.hand-section-break {
+  grid-column: 1 / -1;
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(155,27,27,0.15);
+}
+.hand-section-break span {
+  font-family: 'DM Serif Display', serif;
+  font-size: 16px;
+  color: var(--ink);
+}
+.hand-section-break p {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin: 4px 0 0;
 }

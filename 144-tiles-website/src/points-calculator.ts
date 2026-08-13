@@ -251,10 +251,11 @@ export interface HandPattern {
 }
 
 export const handPatterns: HandPattern[] = [
+  { id: 'chicken-hand', name: 'Chicken Hand (雞糊)', fan: 0, desc: '4 triples and 1 pair but does not match any scoring pattern.', limit: false, auto: true },
   { id: 'common-hand', name: 'Common Hand (平糊)', fan: 1, desc: 'Every meld is a Chow (sequence).', limit: false, auto: true },
   { id: 'all-triplets', name: 'All in Triplets (對對糊)', fan: 3, desc: 'Every meld is a Pong or Kong.', limit: false, auto: true },
   { id: 'mixed-one-suit', name: 'Mixed One Suit (混一色)', fan: 3, desc: 'Only honor tiles and tiles from one suit.', limit: false, auto: true },
-  { id: 'all-one-suit', name: 'All One Suit (清一色)', fan: 7, desc: 'All tiles from one suit.', limit: false, auto: true },
+  { id: 'all-one-suit', name: 'All One Suit (清一色)', fan: 7, desc: 'All tiles from one suit, formed into 4 melds and 1 pair.', limit: false, auto: true },
   { id: 'mixed-orphans', name: 'Mixed Orphans (花幺九)', fan: 1, desc: 'Pongs/Kongs of Ones, Nines, or Honor tiles only.', limit: false, auto: true },
   { id: 'small-dragons', name: 'Small Dragons (小三元)', fan: 3, desc: 'Melds of 2 dragons and a pair of the 3rd dragon.', limit: false, auto: true },
   { id: 'great-dragons', name: 'Great Dragons (大三元)', fan: 5, desc: 'Melds of all 3 dragons.', limit: false, auto: true },
@@ -266,7 +267,28 @@ export const handPatterns: HandPattern[] = [
   { id: 'nine-gates', name: 'Nine Gates (九子連環)', fan: 10, desc: 'One suit 1112345678999, must be totally concealed.', limit: true, auto: true },
   { id: 'great-winds', name: 'Great Winds (大四喜)', fan: 13, desc: 'Melds of all 4 winds.', limit: true, auto: true },
   { id: 'all-kongs', name: 'All Kongs (十八羅漢)', fan: 13, desc: 'Hand containing four Kongs (and a pair).', limit: true, auto: true },
+  { id: 'thirteen-orphans', name: 'Thirteen Orphans (國士無雙)', fan: 13, desc: 'One of each terminal and honor tile, plus a duplicate.', limit: true, auto: true },
 ];
+
+export const sampleHands: Record<string, Record<string, number>> = {
+  'chicken-hand': { m1: 1, m2: 1, m3: 1, m5: 3, s4: 1, s5: 1, s6: 1, p7: 1, p8: 1, p9: 1, p2: 2 },
+  'common-hand': { m1: 1, m2: 1, m3: 1, m4: 1, m5: 1, m6: 1, m7: 1, m8: 1, m9: 1, s1: 1, s2: 1, s3: 1, p1: 2 },
+  'all-triplets': { m1: 3, m2: 3, m3: 3, m4: 3, p1: 2 },
+  'mixed-one-suit': { m1: 1, m2: 1, m3: 1, m4: 1, m5: 1, m6: 1, m7: 1, m8: 1, m9: 1, we: 2, ws: 3 },
+  'all-one-suit': { m1: 3, m2: 3, m3: 3, m4: 1, m5: 1, m6: 1, m7: 2 },
+  'mixed-orphans': { m1: 3, m9: 3, s1: 3, s9: 3, we: 2 },
+  'small-dragons': { dr: 3, dg: 3, dw: 2, m1: 3, m2: 3 },
+  'great-dragons': { dr: 3, dg: 3, dw: 3, we: 2, m1: 3 },
+  'small-winds': { we: 3, ws: 3, ww: 3, wn: 2, dr: 3 },
+  'seven-pairs': { m1: 2, m2: 2, m3: 2, m7: 2, we: 2, p5: 2, p6: 2 },
+  'all-honor-tiles': { we: 3, ws: 3, ww: 3, dr: 3, dw: 2 },
+  'self-triplets': { m1: 3, m2: 3, m3: 3, m4: 3, p1: 2 },
+  'orphans': { m1: 3, m9: 3, s1: 3, s9: 3, p1: 2 },
+  'nine-gates': { m1: 3, m2: 1, m3: 1, m4: 1, m5: 2, m6: 1, m7: 1, m8: 1, m9: 3 },
+  'great-winds': { we: 3, ws: 3, ww: 3, wn: 3, m1: 2 },
+  'all-kongs': { m1: 4, m2: 4, m3: 4, m4: 4, m5: 2 },
+  'thirteen-orphans': { m1: 1, m9: 1, s1: 1, s9: 1, p1: 1, p9: 1, we: 1, ws: 1, ww: 1, wn: 1, dr: 1, dg: 1, dw: 2 },
+};
 
 export function getMainTiles(selected: Record<string, number>): TileDef[] {
   return getSortedTiles(selected).filter((t) => !isBonusTile(t.id));
@@ -276,12 +298,23 @@ export function getMainIds(selected: Record<string, number>): string[] {
   return idsFromTiles(getMainTiles(selected));
 }
 
+const thirteenOrphanIds = ['m1', 'm9', 's1', 's9', 'p1', 'p9', 'we', 'ws', 'ww', 'wn', 'dr', 'dg', 'dw'];
+
+function isThirteenOrphans(counts: Record<string, number>): boolean {
+  const allOrphansPresent = thirteenOrphanIds.every((id) => (counts[id] || 0) >= 1);
+  const hasDuplicate = thirteenOrphanIds.some((id) => counts[id] === 2);
+  const onlyOrphans = Object.keys(counts).every((id) => thirteenOrphanIds.includes(id));
+  const noExcess = thirteenOrphanIds.every((id) => (counts[id] || 0) <= 2);
+  return allOrphansPresent && hasDuplicate && onlyOrphans && noExcess;
+}
+
 export function isValidWinningHand(selected: Record<string, number>): boolean {
   const mainIds = getMainIds(selected);
   if (mainIds.length < 14) return false;
   const counts = getCounts(mainIds);
   const keys = Object.keys(counts);
   if (mainIds.length === 14 && keys.length === 7 && keys.every((id) => counts[id] === 2)) return true;
+  if (mainIds.length === 14 && isThirteenOrphans(counts)) return true;
   return findDecompositions(mainIds).length > 0;
 }
 
@@ -300,6 +333,11 @@ export function detectHandPatterns(selected: Record<string, number>): Record<str
   // Seven pairs
   if (mainIds.length === 14 && Object.keys(counts).length === 7 && Object.keys(counts).every((id) => counts[id] === 2)) {
     detected['seven-pairs'] = true;
+  }
+
+  // Thirteen Orphans
+  if (mainIds.length === 14 && isThirteenOrphans(counts)) {
+    detected['thirteen-orphans'] = true;
   }
 
   // Suit/honor composition
@@ -391,6 +429,11 @@ export function detectHandPatterns(selected: Record<string, number>): Record<str
     if (isNineGates && higherCountRanks === 1) detected['nine-gates'] = true;
   }
 
+  // Chicken hand: valid winning hand with no other scoring pattern
+  if (isValidWinningHand(selected) && !handPatterns.some((p) => p.id !== 'chicken-hand' && detected[p.id])) {
+    detected['chicken-hand'] = true;
+  }
+
   return detected;
 }
 
@@ -442,10 +485,255 @@ export function getHandPatternFan(state: Record<string, boolean>): { fan: number
   return { fan: nonLimitFan, limit: false, limitName: null };
 }
 
-const strictlyConcealedHandIds = ['seven-pairs', 'self-triplets', 'nine-gates'];
+const strictlyConcealedHandIds: string[] = [];
 
 export function isStrictlyConcealedHand(state: Record<string, boolean>): boolean {
   return strictlyConcealedHandIds.some((id) => state[id]);
+}
+
+export interface PotentialHand {
+  id: string;
+  name: string;
+  fan: number;
+  desc: string;
+  ready: boolean;
+  note: string;
+}
+
+function suitLabel(suit: string): string {
+  const found = suits.find((s) => s.tiles[0]?.id.charAt(0) === suit);
+  return found ? found.label : suit;
+}
+
+export function analyzePotentialHands(selected: Record<string, number>): PotentialHand[] {
+  const mainIds = getMainIds(selected);
+  const total = mainIds.length;
+  if (total === 0) return [];
+
+  const counts = getCounts(mainIds);
+  const detected = detectHandPatterns(selected);
+  const stats = getHandStats(selected);
+  const freeTiles = stats.max - stats.total;
+
+  const suitCounts: Record<string, number> = {};
+  let honorCount = 0;
+  mainIds.forEach((id) => {
+    if (isSuited(id)) {
+      const s = parseTile(id).suit;
+      suitCounts[s] = (suitCounts[s] || 0) + 1;
+    } else {
+      honorCount++;
+    }
+  });
+  const suitKeys = Object.keys(suitCounts);
+  const dominantSuit = suitKeys.length
+    ? suitKeys.reduce((a, b) => (suitCounts[a]! > suitCounts[b]! ? a : b))
+    : null;
+
+  const pairs = Object.values(counts).filter((c) => c === 2).length;
+  const triplets = Object.values(counts).filter((c) => c >= 3).length;
+  const kongs = Object.values(counts).filter((c) => c === 4).length;
+
+  const hasSequence = Object.keys(counts).some((id) => {
+    if (!isSuited(id)) return false;
+    const parsed = parseTile(id);
+    if (parsed.rank > 7) return false;
+    const t2 = nextId(id)!;
+    const t3 = nextId(t2)!;
+    return (counts[id] || 0) > 0 && (counts[t2] || 0) > 0 && (counts[t3] || 0) > 0;
+  });
+
+  const dragonCounts = { dr: counts.dr || 0, dg: counts.dg || 0, dw: counts.dw || 0 };
+  const windCounts = { we: counts.we || 0, ws: counts.ws || 0, ww: counts.ww || 0, wn: counts.wn || 0 };
+
+  const nonWindIds = mainIds.filter((id) => id.charAt(0) !== 'w');
+  const nonWindCount = nonWindIds.length;
+  const nonDragonIds = mainIds.filter((id) => !['dr', 'dg', 'dw'].includes(id));
+  const nonDragonCount = nonDragonIds.length;
+
+  const out: PotentialHand[] = [];
+
+  handPatterns.forEach((p) => {
+    if (detected[p.id]) {
+      out.push({ ...p, ready: true, note: 'Already achieved' });
+      return;
+    }
+
+    let possible = false;
+    let note = '';
+
+    switch (p.id) {
+      case 'common-hand': {
+        const hasTripletOrKong = Object.values(counts).some((c) => c >= 3);
+        const allSuited = mainIds.every(isSuited);
+        if (!hasTripletOrKong && allSuited) {
+          possible = true;
+          let seq = 0;
+          Object.keys(counts).forEach((id) => {
+            if (isSuited(id)) {
+              const parsed = parseTile(id);
+              if (parsed.rank <= 7) {
+                const t2 = nextId(id)!;
+                const t3 = nextId(t2)!;
+                if ((counts[id] || 0) > 0 && (counts[t2] || 0) > 0 && (counts[t3] || 0) > 0) {
+                  seq++;
+                }
+              }
+            }
+          });
+          note = seq > 0 ? `${seq} sequence(s) already possible` : 'No triplets yet — all sequences possible';
+        }
+        break;
+      }
+      case 'all-triplets': {
+        const distinctTiles = Object.keys(counts).length;
+        if (distinctTiles <= 5) {
+          possible = true;
+          note = `${triplets} triplet(s)/kong(s), ${pairs} pair(s)`;
+        }
+        break;
+      }
+      case 'mixed-one-suit': {
+        possible = suitKeys.length <= 1;
+        if (possible) note = dominantSuit ? `All suited tiles are ${suitLabel(dominantSuit)}` : 'Honor-only so far';
+        break;
+      }
+      case 'all-one-suit': {
+        possible = suitKeys.length <= 1 && honorCount === 0;
+        if (possible) note = dominantSuit ? `All tiles are ${suitLabel(dominantSuit)}` : '';
+        break;
+      }
+      case 'mixed-orphans': {
+        const allOrphanOrHonor = mainIds.every(
+          (id) => !isSuited(id) || parseTile(id).rank === 1 || parseTile(id).rank === 9
+        );
+        if (allOrphanOrHonor) {
+          possible = true;
+          const orphanCount = mainIds.filter(
+            (id) => isSuited(id) && (parseTile(id).rank === 1 || parseTile(id).rank === 9)
+          ).length;
+          note = `${orphanCount} terminal tile(s)`;
+        }
+        break;
+      }
+      case 'orphans': {
+        const allTerminal =
+          mainIds.every((id) => !isSuited(id) || parseTile(id).rank === 1 || parseTile(id).rank === 9) &&
+          honorCount === 0;
+        if (allTerminal) {
+          possible = true;
+          note = `${mainIds.length} terminal tile(s)`;
+        }
+        break;
+      }
+      case 'all-honor-tiles': {
+        possible = honorCount === total;
+        note = 'All tiles are honors';
+        break;
+      }
+      case 'seven-pairs': {
+        const invalid = Object.values(counts).some((c) => c > 4);
+        const pairCount = Object.values(counts).reduce((sum, c) => sum + Math.floor(c / 2), 0);
+        const singleCount = Object.values(counts).reduce((sum, c) => sum + (c % 2), 0);
+        if (!invalid && pairCount + singleCount <= 7) {
+          possible = true;
+          note = `${pairCount} pair(s), ${singleCount} single(s)`;
+        }
+        break;
+      }
+      case 'small-dragons': {
+        if (nonDragonCount <= 6) {
+          const dPairs = Object.values(dragonCounts).filter((c) => c >= 2).length;
+          const dTrips = Object.values(dragonCounts).filter((c) => c >= 3).length;
+          if (dTrips >= 1 && dPairs + dTrips >= 2) {
+            possible = true;
+            note = `${dTrips} dragon triplet(s), ${dPairs} dragon pair(s)`;
+          }
+        }
+        break;
+      }
+      case 'great-dragons': {
+        if (nonDragonCount <= 3) {
+          const dTrips = Object.values(dragonCounts).filter((c) => c >= 3).length;
+          if (dTrips >= 1) {
+            possible = true;
+            note = `${dTrips} dragon triplet(s)`;
+          }
+        }
+        break;
+      }
+      case 'small-winds': {
+        if (nonWindCount <= 3) {
+          const wPairs = Object.values(windCounts).filter((c) => c >= 2).length;
+          const wTrips = Object.values(windCounts).filter((c) => c >= 3).length;
+          if (wTrips >= 1 && wPairs + wTrips >= 2) {
+            possible = true;
+            note = `${wTrips} wind triplet(s), ${wPairs} wind pair(s)`;
+          }
+        }
+        break;
+      }
+      case 'great-winds': {
+        if (nonWindCount <= 2 && (nonWindCount !== 2 || nonWindIds[0] === nonWindIds[1])) {
+          const wTrips = Object.values(windCounts).filter((c) => c >= 3).length;
+          if (wTrips >= 1) {
+            possible = true;
+            note = `${wTrips} wind triplet(s)`;
+          }
+        }
+        break;
+      }
+      case 'nine-gates': {
+        if (suitKeys.length === 1 && honorCount === 0) {
+          const suit = suitKeys[0]!;
+          const hasBase = [1, 2, 3, 4, 5, 6, 7, 8, 9].every(
+            (r) => counts[suit + r] && counts[suit + r]! >= 1
+          );
+          if (hasBase) {
+            possible = true;
+            note = 'One-suit 1-9 base complete';
+          }
+        }
+        break;
+      }
+      case 'all-kongs': {
+        if (kongs > 0) {
+          possible = true;
+          note = `${kongs} kong(s)`;
+        }
+        break;
+      }
+      case 'self-triplets': {
+        if (!hasSequence && triplets + pairs >= 2) {
+          possible = true;
+          note = `${triplets} triplet(s)/kong(s), ${pairs} pair(s)`;
+        }
+        break;
+      }
+      case 'thirteen-orphans': {
+        const orphanIds = ['m1', 'm9', 's1', 's9', 'p1', 'p9', 'we', 'ws', 'ww', 'wn', 'dr', 'dg', 'dw'];
+        const allOrphanTiles = mainIds.every((id) => orphanIds.includes(id));
+        const noExcess = Object.values(counts).every((c) => c <= 2);
+        if (allOrphanTiles && noExcess) {
+          possible = true;
+          const distinct = orphanIds.filter((id) => (counts[id] || 0) > 0).length;
+          const duplicates = Object.values(counts).filter((c) => c === 2).length;
+          note = `${distinct}/13 distinct, ${duplicates} duplicate`;
+        }
+        break;
+      }
+    }
+
+    if (possible) {
+      const target = p.id === 'all-kongs' ? 18 : 14;
+      const needed = target - total;
+      if (needed > 0 && needed <= freeTiles) {
+        out.push({ ...p, ready: false, note });
+      }
+    }
+  });
+
+  return out;
 }
 
 export interface FlowerScenario {
@@ -558,7 +846,7 @@ export interface WinningCondition {
 
 export const winningConditions: WinningCondition[] = [
   { id: 'self-draw', name: 'Self Draw (自摸)', desc: 'Won by drawing the winning tile yourself', fan: 1, highlight: true },
-  { id: 'concealed', name: 'Concealed Hand (門前清)', desc: 'No open melds (chows or pungs claimed from others). Hands that are strictly concealed by definition (e.g., Seven Pairs, Thirteen Orphans, Self Triplets, Nine Gates) do not receive this additional point.', fan: 1, highlight: true },
+  { id: 'concealed', name: 'Concealed Hand (門前清)', desc: 'No open melds (chows or pungs claimed from others).', fan: 1, highlight: true },
   { id: 'robbing-kong', name: 'Robbing the Kong (槓上開花)', desc: 'Won by claiming the tile used to promote a kong', fan: 1, highlight: false },
   { id: 'last-tile', name: 'Last Catch (海底撈月)', desc: 'Won on the final drawable tile from the wall or final discard', fan: 1, highlight: false },
   { id: 'win-by-kong', name: 'Win by Kong (槓上開花)', desc: 'The winning tile is from a replacement tile due to a Kong or a Bonus Tile. Implies self-pick (which adds 1 additional faan).', fan: 1, highlight: false },
