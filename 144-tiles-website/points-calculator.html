@@ -13,6 +13,10 @@
 .tile.dragon-red .tile-glyph { color: #d32f2f; }
 .tile.dragon-green .tile-glyph { color: #388e3c; }
 .tile.dragon-blue .tile-glyph { color: #1976d2; }
+#tile-selector {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
 #tile-selector .tile-row {
   display: flex;
   flex-wrap: nowrap;
@@ -93,6 +97,8 @@
 }
 .fan-reference-sticky .fan-table { margin: 0; }
 .fan-reference-hidden .table-panel > *:not(.panel-title) { display: none; }
+.fan-reference-hidden .table-panel { padding-top: 6px; padding-bottom: 6px; }
+.fan-reference-hidden .panel-title { margin-bottom: 0; }
 .tile-panel-title { justify-content: space-between; }
 .tile-panel-title .clear-hand-btn { font-size: 11px; padding: 5px 10px; }
 .fan-reference-toggle {
