@@ -9,6 +9,7 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, "index.html"),
         board: resolve(__dirname, "board_index.html"),
+        points: resolve(__dirname, "points-calculator.html"),
       },
     },
   },

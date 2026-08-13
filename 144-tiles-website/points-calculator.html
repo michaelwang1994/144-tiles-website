@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Points Calculator | 144 Tiles Mahjong Club</title>
+<link rel="icon" type="image/png" href="/assets/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Crimson+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600;1,700&family=Montserrat:wght@400;500;600;700;800&family=Pinyon+Script&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+.tile.dragon-red .tile-glyph { color: #d32f2f; }
+.tile.dragon-green .tile-glyph { color: #388e3c; }
+.tile.dragon-blue .tile-glyph { color: #1976d2; }
+#tile-selector .tile-row {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+}
+#tile-selector .tile {
+  flex: 0 0 auto;
+  width: clamp(16px, 8vw, 42px);
+  height: clamp(22px, 10.5vw, 56px);
+  font-size: clamp(12px, 5vw, 28px);
+}
+#tile-selector .tile-glyph { font-size: clamp(16px, 8vw, 45px); }
+#tile-selector .tile.selected .tile-glyph { font-size: clamp(16px, 8vw, 45px); }
+#tile-selector .tile-label { font-size: clamp(6px, 1.5vw, 9px); }
+#tile-selector .tile .count { font-size: clamp(6px, 1.5vw, 9px); }
+@media (max-width: 600px) {
+  .calc-section { padding: 24px 12px; }
+  .tile-panel { padding: 16px; }
+  #tile-selector .tile-row { gap: 4px; }
+}
+.flower-points-section { padding-bottom: 180px; }
+@media (max-width: 700px) {
+  .flower-points-section { padding-bottom: 150px; }
+}
+.context-row.light label { color: var(--ink-soft); }
+.context-row.light select {
+  font-family: 'Montserrat', sans-serif; font-size: 13px; padding: 6px 10px;
+  border-radius: 4px; border: 1px solid rgba(155,27,27,0.25);
+  background: #fff; color: var(--ink); margin-left: 8px;
+}
+.stepper { display: flex; align-items: center; gap: 4px; }
+.stepper-btn {
+  width: 26px; height: 26px;
+  border: 1.5px solid rgba(155,27,27,0.35);
+  background: #fff; color: var(--red);
+  border-radius: 4px; font-size: 16px; line-height: 1;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  padding: 0;
+}
+.stepper-btn:hover { background: var(--red); color: var(--cream); }
+.stepper-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.stepper-value { min-width: 20px; text-align: center; font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 700; color: var(--ink); }
+.win-condition { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(155,27,27,0.08); cursor: pointer; transition: background 0.15s; }
+.win-condition:hover { background: rgba(155,27,27,0.04); }
+.win-condition input { margin-top: 3px; accent-color: var(--red); }
+.win-condition.highlight { background: rgba(76, 175, 80, 0.12); border-color: rgba(76, 175, 80, 0.28); }
+.win-condition.highlight:hover { background: rgba(76, 175, 80, 0.18); }
+.win-condition .hand-name { font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 600; color: var(--ink); }
+.win-condition .hand-desc { font-family: 'Montserrat', sans-serif; font-size: 11px; color: var(--ink-soft); line-height: 1.4; margin-top: 2px; }
+.fan-reference-sticky {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 0;
+  background: var(--cream);
+  border-top: 1px solid rgba(155,27,27,0.15);
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+}
+.fan-reference-sticky .table-panel {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 32px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+}
+.fan-reference-sticky .panel-title { margin-bottom: 10px; }
+.fan-reference-sticky .fan-table { margin: 0; }
+.fan-reference-hand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 10px 12px;
+  background: rgba(155,27,27,0.04);
+  border-radius: 8px;
+}
+.fan-reference-hand-label {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+.fan-reference-hand-empty {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 12px;
+  color: rgba(74,42,42,0.55);
+}
+.fan-reference-hand-tiles {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.fan-reference-hand-tiles .tile {
+  width: 36px;
+  height: 48px;
+  font-size: 14px;
+}
+.fan-reference-hand-tiles .tile-glyph { font-size: 18px; }
+.fan-reference-hand-tiles .tile-label { font-size: 8px; }
+.fan-breakdown {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(155,27,27,0.1);
+  font-family: 'Montserrat', sans-serif;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+.fan-breakdown-item { font-weight: 600; color: var(--ink); }
+.fan-breakdown-separator { color: rgba(155,27,27,0.4); font-weight: 700; }
+.fan-breakdown-total { font-weight: 700; color: var(--red); }
+.fan-conditions {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(155,27,27,0.1);
+  font-family: 'Montserrat', sans-serif;
+}
+.fan-conditions-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+  margin-bottom: 8px;
+}
+.fan-conditions-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.fan-condition-tag {
+  display: inline-block;
+  padding: 4px 10px;
+  background: rgba(155,27,27,0.08);
+  border-radius: 12px;
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 500;
+}
+.fan-condition-empty {
+  color: rgba(74,42,42,0.55);
+  font-style: italic;
+  font-size: 12px;
+}
+.fan-reference-hand-tiles .tile.removable { cursor: pointer; }
+.fan-reference-hand-tiles .tile.removable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 0 rgba(155,27,27,0.35);
+  border-color: var(--red);
+}
+.fan-reference-hand-tiles .tile.removable:active { transform: translateY(1px); }
+footer.calc-footer { padding-bottom: 160px; }
+@media (max-width: 700px) {
+  .fan-reference-sticky .table-panel { padding: 12px 16px; }
+  .fan-reference-sticky .fan-table { font-size: 12px; }
+  .fan-reference-sticky .fan-table th,
+  .fan-reference-sticky .fan-table td { padding: 6px 4px; }
+  .fan-breakdown { font-size: 11px; gap: 6px 8px; }
+  footer.calc-footer { padding-bottom: 130px; }
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-left">
+      <a href="index.html#top" class="nav-logo-link">
+        <img class="nav-logo" src="assets/logo.png" alt="144 Tiles">
+      </a>
+    </div>
+    <div class="nav-links">
+      <a href="index.html#top">Home</a>
+      <a href="index.html#events">Events</a>
+      <a href="index.html#mission">About</a>
+      <a href="points-calculator.html" class="active">Points</a>
+      <a href="index.html#contact">Contact</a>
+    </div>
+  </div>
+</nav>
+
+<section class="calc-hero hero">
+  <div class="hero-grid hero-noimage" style="justify-items: center; text-align: center;">
+    <div>
+      <h1 class="hero-title"><span class="script">Points</span> Calculator</h1>
+      <p class="hero-tagline" style="max-width: 46ch; margin-left: auto; margin-right: auto;">Select your tiles to build your hand, then use the fan-to-points reference to score it.</p>
+    </div>
+  </div>
+</section>
+
+<section class="calc-section">
+  <div class="tile-panel">
+    <div class="panel-title">🀁 Game context</div>
+    <div class="panel-subtitle">Set the seat wind and table (round) wind for scoring.</div>
+    <div class="context-row light">
+      <label>
+        Seat wind:
+        <select id="seat-wind">
+          <option value="e">East 東 (1)</option>
+          <option value="s">South 南 (2)</option>
+          <option value="w">West 西 (3)</option>
+          <option value="n">North 北 (4)</option>
+        </select>
+      </label>
+      <label>
+        Table wind:
+        <select id="table-wind">
+          <option value="e">East round 東</option>
+          <option value="s">South round 南</option>
+          <option value="w">West round 西</option>
+          <option value="n">North round 北</option>
+        </select>
+      </label>
+    </div>
+  </div>
+</section>
+
+<section class="calc-section" style="padding-top: 0;">
+  <div class="tile-panel">
+    <div class="panel-title">🀫 Select your tiles</div>
+    <div class="panel-subtitle">Click a tile up to 4 times for regular tiles, once for flowers.</div>
+    <div id="tile-selector"></div>
+  </div>
+</section>
+
+<section class="calc-section" style="padding-top: 0;">
+  <div class="tile-panel">
+    <div class="panel-title">🀅 Hand patterns</div>
+    <div class="panel-subtitle">Auto-detected winning hand patterns from your tiles. Tap an item to include or exclude it.</div>
+    <div class="hand-list" id="hand-patterns"></div>
+    <div class="hand-summary" id="hand-pattern-summary">Hand pattern fan total: 0</div>
+  </div>
+</section>
+
+<section class="calc-section" style="padding-top: 0;">
+  <div class="tile-panel">
+    <div class="panel-title">🀅 Winning conditions</div>
+    <div class="panel-subtitle">Check the ways your hand was won. Self Draw and Concealed Hand are highlighted for quick reference.</div>
+    <div class="hand-list" id="winning-conditions"></div>
+  </div>
+</section>
+
+<section class="calc-section" style="padding-top: 0;">
+  <div class="tile-panel">
+    <div class="panel-title">🀅 Wind &amp; Dragon points</div>
+    <div class="panel-subtitle">Auto-detected wind and dragon scoring. A double wind (seat = table) counts as 2 fan.</div>
+    <div class="hand-list" id="wind-dragon-scenarios"></div>
+    <div class="hand-summary" id="wind-dragon-summary">Wind &amp; Dragon fan total: 0</div>
+  </div>
+</section>
+
+<section class="calc-section flower-points-section" style="padding-top: 0;">
+  <div class="tile-panel">
+    <div class="panel-title">🀢 Flower points</div>
+    <div class="panel-subtitle">Auto-detected flower and season scoring. Tap an item to include or exclude it.</div>
+    <div class="hand-list" id="flower-scenarios"></div>
+    <div class="hand-summary" id="flower-summary">Flower fan total: 0</div>
+  </div>
+</section>
+
+<section class="calc-section fan-reference-sticky" style="padding-top: 0;">
+  <div class="table-panel">
+    <div class="panel-title">Fan → Points reference</div>
+    <table class="fan-table" id="fan-table">
+      <thead><tr><th>Fan</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th><th>11</th><th>12</th><th>13+</th></tr></thead>
+      <tbody><tr><th>Points</th><td>1</td><td>2</td><td>4</td><td>8</td><td>16</td><td>24</td><td>32</td><td>48</td><td>64</td><td>96</td><td>128</td><td>192</td><td>256</td><td>384</td></tr></tbody>
+    </table>
+    <div class="fan-reference-hand" id="fan-reference-hand">
+      <span class="fan-reference-hand-label">Your hand</span>
+      <button id="clear-tiles" class="clear-hand-btn">Clear tiles</button>
+      <span class="fan-reference-hand-content" id="fan-reference-hand-content"></span>
+    </div>
+    <div class="fan-breakdown" id="fan-breakdown">
+      <span class="fan-breakdown-item" id="breakdown-hand">Hand: 0</span>
+      <span class="fan-breakdown-separator">+</span>
+      <span class="fan-breakdown-item" id="breakdown-wind">Wind &amp; Dragon: 0</span>
+      <span class="fan-breakdown-separator">+</span>
+      <span class="fan-breakdown-item" id="breakdown-flower">Flower: 0</span>
+      <span class="fan-breakdown-separator">+</span>
+      <span class="fan-breakdown-item" id="breakdown-winning">Winning: 0</span>
+      <span class="fan-breakdown-separator">=</span>
+      <span class="fan-breakdown-total" id="breakdown-total">Total: 0 fan</span>
+    </div>
+    <div class="fan-conditions" id="fan-conditions"></div>
+  </div>
+</section>
+
+<footer class="calc-footer">
+  <a href="index.html">← Back to 144 Tiles</a>
+</footer>
+
+<script type="module" src="./src/points-calculator-ui.ts"></script>
+</body>
+</html>
