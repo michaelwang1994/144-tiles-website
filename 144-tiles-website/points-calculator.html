@@ -13,31 +13,33 @@
 .tile.dragon-red .tile-glyph { color: #d32f2f; }
 .tile.dragon-green .tile-glyph { color: #388e3c; }
 .tile.dragon-blue .tile-glyph { color: #1976d2; }
-#tile-selector {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
 #tile-selector .tile-row {
   display: flex;
   flex-wrap: nowrap;
   gap: 6px;
 }
 #tile-selector .tile {
-  flex: 0 0 auto;
-  width: clamp(16px, 8vw, 42px);
-  height: clamp(22px, 10.5vw, 56px);
-  font-size: clamp(12px, 5vw, 28px);
+  flex: 1 1 0;
+  min-width: 0;
+  width: auto;
+  max-width: 42px;
+  height: auto;
+  aspect-ratio: 42 / 56;
+  font-size: clamp(10px, 2.2vw, 22px);
 }
-#tile-selector .tile-glyph { font-size: clamp(16px, 8vw, 45px); }
-#tile-selector .tile.selected .tile-glyph { font-size: clamp(16px, 8vw, 45px); }
-#tile-selector .tile-label { font-size: clamp(6px, 1.5vw, 9px); }
-#tile-selector .tile .count { font-size: clamp(6px, 1.5vw, 9px); }
+#tile-selector .tile-glyph { font-size: clamp(12px, 5.5vw, 38px); }
+#tile-selector .tile.selected .tile-glyph { font-size: clamp(12px, 5.5vw, 38px); }
+#tile-selector .tile-label { font-size: clamp(8px, 2.4vw, 12px); }
+#tile-selector .tile .count { font-size: clamp(8px, 2.4vw, 12px); }
 @media (max-width: 600px) {
   .calc-section { padding: 24px 12px; }
   .tile-panel { padding: 16px; }
   #tile-selector .tile-row { gap: 4px; }
 }
-.flower-points-section { padding-bottom: 180px; }
+.flower-points-section {
+  padding-bottom: 180px;
+  transition: padding-bottom 0.35s ease;
+}
 @media (max-width: 700px) {
   .flower-points-section { padding-bottom: 150px; }
 }
@@ -79,6 +81,7 @@
   max-height: min(70vh, 480px);
   overflow-y: auto;
   overscroll-behavior-y: contain;
+  transition: max-height 0.35s ease, padding 0.35s ease;
 }
 .fan-reference-sticky .table-panel {
   max-width: 1200px;
@@ -96,7 +99,15 @@
   gap: 12px;
 }
 .fan-reference-sticky .fan-table { margin: 0; }
-.fan-reference-hidden .table-panel > *:not(.panel-title) { display: none; }
+.fan-reference-hidden {
+  max-height: 150px;
+  overflow: hidden;
+}
+.fan-reference-hidden .table-panel > *:not(.panel-title) {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
 .fan-reference-hidden .table-panel { padding-top: 6px; padding-bottom: 6px; }
 .fan-reference-hidden .panel-title { margin-bottom: 0; }
 .tile-panel-title { justify-content: space-between; }
@@ -214,6 +225,62 @@
 .clear-hand-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .fan-reference-hand .clear-hand-btn { font-size: 11px; padding: 6px 10px; }
 .fan-potential { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+.mini-hand {
+  display: none;
+  align-items: center;
+  gap: 12px;
+  padding-top: 10px;
+  margin-top: 10px;
+  border-top: 1px solid rgba(155,27,27,0.1);
+}
+.fan-reference-hidden .mini-hand.visible {
+  display: flex;
+  opacity: 1;
+  pointer-events: auto;
+}
+.mini-hand-label {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+.mini-hand-tiles {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 3px;
+  flex: 1;
+}
+.mini-hand-tiles .tile.selected {
+  width: 24px;
+  height: 32px;
+  font-size: 10px;
+  cursor: pointer;
+}
+.mini-hand-tiles .tile.selected .tile-glyph { font-size: 18px; }
+.mini-hand-tiles .tile.selected .tile-label { font-size: 7px; }
+.mini-hand-tiles .tile.removable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 0 rgba(155,27,27,0.35);
+  border-color: var(--red);
+}
+.mini-hand-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mini-hand .clear-hand-btn {
+  font-size: 11px;
+  padding: 5px 10px;
+}
+@media (max-width: 700px) {
+  .mini-hand { gap: 8px; }
+  .mini-hand-tiles .tile.selected { width: 20px; height: 27px; font-size: 9px; }
+  .mini-hand-tiles .tile.selected .tile-glyph { font-size: 15px; }
+}
 .fan-table-scroll {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -281,7 +348,10 @@
 @media (max-width: 700px) {
   .modal-body { padding: 12px 16px; }
 }
-footer.calc-footer { padding-bottom: 160px; }
+footer.calc-footer {
+  padding-bottom: 160px;
+  transition: padding-bottom 0.35s ease;
+}
 @media (max-width: 700px) {
   .fan-reference-sticky .table-panel { padding: 12px 16px; }
   .fan-reference-sticky .fan-table { font-size: 12px; }
@@ -363,18 +433,18 @@ footer.calc-footer { padding-bottom: 160px; }
 
 <section class="calc-section" style="padding-top: 0;">
   <div class="tile-panel">
-    <div class="panel-title">🀅 Hand patterns</div>
-    <div class="panel-subtitle">Auto-detected winning hand patterns from your tiles. Tap an item to include or exclude it.</div>
-    <div class="hand-list" id="hand-patterns"></div>
-    <div class="hand-summary" id="hand-pattern-summary">Hand pattern fan total: 0</div>
+    <div class="panel-title">🀅 Winning conditions</div>
+    <div class="panel-subtitle">Check the ways your hand was won. Self Draw and Concealed Hand are highlighted for quick reference.</div>
+    <div class="hand-list" id="winning-conditions"></div>
   </div>
 </section>
 
 <section class="calc-section" style="padding-top: 0;">
   <div class="tile-panel">
-    <div class="panel-title">🀅 Winning conditions</div>
-    <div class="panel-subtitle">Check the ways your hand was won. Self Draw and Concealed Hand are highlighted for quick reference.</div>
-    <div class="hand-list" id="winning-conditions"></div>
+    <div class="panel-title">🀅 Hand patterns</div>
+    <div class="panel-subtitle">Auto-detected winning hand patterns from your tiles. Tap an item to include or exclude it.</div>
+    <div class="hand-list" id="hand-patterns"></div>
+    <div class="hand-summary" id="hand-pattern-summary">Hand pattern fan total: 0</div>
   </div>
 </section>
 
@@ -400,10 +470,15 @@ footer.calc-footer { padding-bottom: 160px; }
   <div class="table-panel">
     <div class="panel-title">
       <span>
-        My points
+        Your points
         <span class="fan-reference-total" id="fan-reference-total"></span>
       </span>
       <button id="toggle-fan-reference" class="clear-hand-btn fan-reference-toggle" type="button" aria-expanded="true">Hide panel</button>
+    </div>
+    <div class="mini-hand" id="mini-hand">
+      <span class="mini-hand-label">Your hand</span>
+      <span class="mini-hand-tiles" id="mini-hand-content"></span>
+      <button id="mini-hand-clear" class="clear-hand-btn" type="button">Clear</button>
     </div>
     <div class="fan-table-scroll">
       <table class="fan-table" id="fan-table">
@@ -460,14 +535,37 @@ footer.calc-footer { padding-bottom: 160px; }
   }
 
   const toggleBtn = document.getElementById('toggle-fan-reference');
-  if (toggleBtn) {
-    toggleBtn.addEventListener('click', () => {
-      panel.classList.toggle('fan-reference-hidden');
-      const hidden = panel.classList.contains('fan-reference-hidden');
+  function setPanelHidden(hidden) {
+    panel.classList.toggle('fan-reference-hidden', hidden);
+    if (toggleBtn) {
       toggleBtn.textContent = hidden ? 'Show panel' : 'Hide panel';
       toggleBtn.setAttribute('aria-expanded', String(!hidden));
+    }
+    window.dispatchEvent(new CustomEvent('fanreferencevisibility', { detail: { hidden } }));
+  }
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      const hidden = !panel.classList.contains('fan-reference-hidden');
+      setPanelHidden(hidden);
     });
   }
+  let lastScrollY = window.scrollY;
+  let scrollTicking = false;
+  const scrollThreshold = 10;
+  const mobileMediaQuery = window.matchMedia('(max-width: 700px)');
+  window.addEventListener('scroll', () => {
+    if (!mobileMediaQuery.matches || scrollTicking) return;
+    scrollTicking = true;
+    window.requestAnimationFrame(() => {
+      const currentScrollY = window.scrollY;
+      const delta = currentScrollY - lastScrollY;
+      if (Math.abs(delta) > scrollThreshold) {
+        setPanelHidden(true);
+      }
+      lastScrollY = currentScrollY;
+      scrollTicking = false;
+    });
+  }, { passive: true });
 })();
 </script>
 </body>

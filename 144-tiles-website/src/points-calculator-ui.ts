@@ -123,6 +123,7 @@ function updateTileUI() {
     }
   });
   renderReferenceHand();
+  renderMiniHand();
   renderPotentialHands();
   renderHandPatterns();
   renderWindDragonPoints();
@@ -188,6 +189,45 @@ function renderReferenceHand() {
     });
   }
   content.appendChild(tilesContainer);
+}
+
+function updateMiniHandVisibility() {
+  const miniHand = document.querySelector('.mini-hand') as HTMLElement | null;
+  if (!miniHand) return;
+  const hasTiles = Object.keys(selected).length > 0;
+  miniHand.classList.toggle('visible', hasTiles);
+}
+
+function renderMiniHand() {
+  const content = $('mini-hand-content');
+  if (!content) return;
+  content.innerHTML = '';
+
+  const tiles = getSortedTiles(selected);
+  const mainTiles = tiles.filter((t) => !isBonusTile(t.id));
+  const bonusTiles = tiles.filter((t) => isBonusTile(t.id));
+
+  if (tiles.length === 0) {
+    updateMiniHandVisibility();
+    return;
+  }
+
+  const tilesContainer = document.createElement('span');
+  tilesContainer.className = 'mini-hand-tiles';
+  mainTiles.forEach((t) => {
+    tilesContainer.appendChild(makeRemovableTile(t, false));
+  });
+  if (bonusTiles.length) {
+    const sep = document.createElement('span');
+    sep.className = 'flower-separator';
+    sep.textContent = '|';
+    tilesContainer.appendChild(sep);
+    bonusTiles.forEach((t) => {
+      tilesContainer.appendChild(makeRemovableTile(t, true));
+    });
+  }
+  content.appendChild(tilesContainer);
+  updateMiniHandVisibility();
 }
 
 // ---------- Game context ----------
@@ -1001,6 +1041,12 @@ if (potentialModal) {
     if (e.target === potentialModal) closePotentialModal();
   });
 }
+
+// Mini hand visibility tracks the hidden state of the main fan reference panel.
+window.addEventListener('fanreferencevisibility', () => updateMiniHandVisibility());
+
+const miniHandClear = $('mini-hand-clear');
+if (miniHandClear) miniHandClear.addEventListener('click', clearHand);
 
 // Initialize
 renderTileSelector();
