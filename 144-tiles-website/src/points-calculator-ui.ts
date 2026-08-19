@@ -28,6 +28,26 @@ import {
 
 function $(id: string) { return document.getElementById(id); }
 
+// Google Form pre-fill configuration.
+// Create a Google Form with these fields, then replace the placeholders below.
+// Field entry IDs are found in the pre-filled URL (the numbers after "entry.").
+const GOOGLE_FORM_CONFIG = {
+  formId: 'YOUR_GOOGLE_FORM_ID',
+  entries: {
+    name: 'YOUR_NAME_ENTRY_ID',
+    email: 'YOUR_EMAIL_ENTRY_ID',
+    totalPoints: 'YOUR_TOTAL_POINTS_ENTRY_ID',
+    totalTiles: 'YOUR_TOTAL_TILES_ENTRY_ID',
+    tiles: 'YOUR_TILES_ENTRY_ID',
+    checkedConditions: 'YOUR_CHECKED_CONDITIONS_ENTRY_ID',
+    pungs: 'YOUR_PUNGS_ENTRY_ID',
+    chows: 'YOUR_CHOWS_ENTRY_ID',
+    kongs: 'YOUR_KONGS_ENTRY_ID',
+    tableWind: 'YOUR_TABLE_WIND_ENTRY_ID',
+    seatWind: 'YOUR_SEAT_WIND_ENTRY_ID',
+  },
+};
+
 const selected: Record<string, number> = {}; // tile id -> count
 const melds: LockedGroup[] = [];
 let activeMeldMode: 'chow' | 'pung' | 'kong' | null = null;
@@ -303,8 +323,8 @@ function updateTileUI() {
   renderFlowerPoints();
   renderWinningConditions();
 
-  const copyHand = $('copy-hand') as HTMLButtonElement | null;
-  if (copyHand) copyHand.disabled = !isValidWinningHand(selected, melds) || getTotalFan() === 0;
+  const checkoutHand = $('checkout-hand') as HTMLButtonElement | null;
+  if (checkoutHand) checkoutHand.disabled = !isValidWinningHand(selected, melds) || getTotalFan() === 0;
   renderReferenceTotal();
   renderFanBreakdown();
 }
@@ -474,7 +494,7 @@ function renderMiniHand() {
 let seatWind = 'e';
 let tableWind = 'e';
 
-// ---------- Flower points ----------
+// ---------- Flower fan ----------
 
 const flowerIncluded: Record<string, boolean> = {};
 let seatFlowerOverride: number | null = null; // null = auto-detect, 0-2 = manual value
@@ -482,11 +502,13 @@ let seatFlowerOverride: number | null = null; // null = auto-detect, 0-2 = manua
 function highlightFanTable(fan: number) {
   document.querySelectorAll('#fan-table td').forEach((cell) => { cell.classList.remove('current'); });
   if (fan < 0) return;
+  const row = document.querySelector('#fan-table tr:first-child');
+  if (!row) return;
   let cell: Element | null;
   if (fan <= 12) {
-    cell = document.querySelector('#fan-table td:nth-child(' + (fan + 2) + ')');
+    cell = row.querySelector('td:nth-child(' + (fan + 2) + ')');
   } else {
-    cell = document.querySelector('#fan-table td:last-child');
+    cell = row.querySelector('td:last-child');
   }
   if (cell) cell.classList.add('current');
 }
@@ -552,7 +574,7 @@ function renderFlowerPoints() {
 
     const fan = document.createElement('span');
     fan.className = 'hand-fan';
-    fan.textContent = fanToPoints(value) + ' points';
+    fan.textContent = formatFan(value);
 
     item.appendChild(info);
     item.appendChild(fan);
@@ -563,15 +585,15 @@ function renderFlowerPoints() {
   if (summary) {
     let breakdown: string;
     if (handResult.limit) {
-      breakdown = 'Limit hand: ' + handResult.limitName + ' (' + fanToPoints(handResult.fan) + ' points)';
-      if (winningFan > 0) breakdown += ' + Winning conditions: ' + fanToPoints(winningFan);
-      breakdown += ' = ' + fanToPoints(total) + ' points';
+      breakdown = 'Limit hand: ' + handResult.limitName + ' (' + formatFan(handResult.fan) + ')';
+      if (winningFan > 0) breakdown += ' + Winning conditions: ' + formatFan(winningFan);
+      breakdown += ' = ' + formatFan(total);
     } else {
-      breakdown = 'Hand patterns: ' + fanToPoints(handResult.fan);
-      if (windDragonTotal > 0) breakdown += ' + Wind & Dragon: ' + fanToPoints(windDragonTotal);
-      if (flowerTotal > 0) breakdown += ' + Flower: ' + fanToPoints(flowerTotal);
-      if (winningFan > 0) breakdown += ' + Winning conditions: ' + fanToPoints(winningFan);
-      breakdown += ' = ' + fanToPoints(total) + ' points';
+      breakdown = 'Hand patterns: ' + formatFan(handResult.fan);
+      if (windDragonTotal > 0) breakdown += ' + Wind & Dragon: ' + formatFan(windDragonTotal);
+      if (flowerTotal > 0) breakdown += ' + Flower: ' + formatFan(flowerTotal);
+      if (winningFan > 0) breakdown += ' + Winning conditions: ' + formatFan(winningFan);
+      breakdown += ' = ' + formatFan(total);
     }
     summary.textContent = breakdown;
   }
@@ -617,7 +639,7 @@ function renderCheckedConditions() {
     } else if (p.limit) {
       return;
     }
-    addTag(p.name + ' (' + fanToPoints(p.fan) + ' points)');
+    addTag(p.name + ' (' + formatFan(p.fan) + ')');
   });
 
   if (!handResult.limit) {
@@ -625,9 +647,9 @@ function renderCheckedConditions() {
     windDragonScenarios.forEach((s) => {
       if (s.stepper) {
         const value = (windDragonState[s.id] as number | undefined) ?? 0;
-        if (value > 0) addTag(s.name + ' (' + fanToPoints(value) + ' points)');
+        if (value > 0) addTag(s.name + ' (' + formatFan(value) + ')');
       } else if (windDragonState[s.id] && windDragonDetected[s.id]!.applies) {
-        addTag(s.name + ' (' + fanToPoints(windDragonDetected[s.id]!.fan) + ' points)');
+        addTag(s.name + ' (' + formatFan(windDragonDetected[s.id]!.fan) + ')');
       }
     });
 
@@ -635,9 +657,9 @@ function renderCheckedConditions() {
     const seatFlowerValue = seatFlowerOverride !== null ? seatFlowerOverride : flowerDetected['seat-flower']!.fan;
     flowerScenarios.forEach((s) => {
       if (s.id === 'seat-flower') {
-        if (seatFlowerValue > 0) addTag(s.name + ' (' + fanToPoints(seatFlowerValue) + ' points)');
+        if (seatFlowerValue > 0) addTag(s.name + ' (' + formatFan(seatFlowerValue) + ')');
       } else if (flowerIncluded[s.id] && flowerDetected[s.id]!.applies) {
-        addTag(s.name + ' (' + fanToPoints(flowerDetected[s.id]!.fan) + ' points)');
+        addTag(s.name + ' (' + formatFan(flowerDetected[s.id]!.fan) + ')');
       }
     });
   }
@@ -651,7 +673,7 @@ function renderCheckedConditions() {
   winningConditions.forEach((c) => {
     if (!winningConditionState[c.id]) return;
     if (c.id === 'concealed' && concealedExcluded) return;
-    addTag(c.name + ' (' + fanToPoints(c.fan) + ' points)');
+    addTag(c.name + ' (' + formatFan(c.fan) + ')');
   });
 
   if (list.children.length === 0) {
@@ -761,7 +783,7 @@ function renderHandPatterns() {
       const title = document.createElement('span');
       title.textContent = 'Limit hands';
       const note = document.createElement('p');
-      note.textContent = 'Limit hands cannot gain points beyond their hand point value.';
+      note.textContent = 'Limit hands cannot gain fan beyond their hand fan value.';
       divider.appendChild(title);
       divider.appendChild(note);
       container.appendChild(divider);
@@ -787,7 +809,7 @@ function renderHandPatterns() {
 
     const fan = document.createElement('span');
     fan.className = 'hand-fan';
-    fan.textContent = fanToPoints(p.fan) + ' points';
+    fan.textContent = formatFan(p.fan);
 
     const sampleBtn = document.createElement('button');
     sampleBtn.type = 'button';
@@ -809,9 +831,9 @@ function renderHandPatterns() {
   const summary = $('hand-pattern-summary');
   if (summary) {
     if (handResult.limit) {
-      summary.textContent = 'Limit hand: ' + handResult.limitName + ' = ' + fanToPoints(handResult.fan) + ' points';
+      summary.textContent = 'Limit hand: ' + handResult.limitName + ' = ' + formatFan(handResult.fan);
     } else {
-      summary.textContent = 'Hand pattern points total: ' + fanToPoints(handResult.fan);
+      summary.textContent = 'Hand pattern fan total: ' + formatFan(handResult.fan);
     }
   }
 
@@ -841,7 +863,7 @@ function renderPotentialHands() {
     empty.className = 'fan-condition-empty';
     empty.textContent = Object.keys(selected).length === 0
       ? 'Select tiles to see potential hands.'
-      : 'No potential scoring hands based on existing tiles. You can potentially earn situational points.';
+      : 'No potential scoring hands based on existing tiles. You can potentially earn situational fan.';
     container.appendChild(empty);
     return;
   }
@@ -874,7 +896,7 @@ function renderPotentialHands() {
 
     const fan = document.createElement('span');
     fan.className = 'hand-fan';
-    fan.textContent = fanToPoints(p.fan) + ' points';
+    fan.textContent = formatFan(p.fan);
 
     meta.appendChild(note);
     meta.appendChild(fan);
@@ -885,7 +907,7 @@ function renderPotentialHands() {
   });
 }
 
-// ---------- Wind & Dragon points ----------
+// ---------- Wind & Dragon fan ----------
 
 const windDragonState: Record<string, boolean | number> = {};
 let dragonOverride: number | null = null; // null = auto-detect, 0-3 = manual value
@@ -927,7 +949,7 @@ function renderWindDragonPoints() {
 
     const fan = document.createElement('span');
     fan.className = 'hand-fan';
-    fan.textContent = fanToPoints(scenario.fan) + ' points';
+    fan.textContent = formatFan(scenario.fan);
 
     item.appendChild(info);
     item.appendChild(fan);
@@ -935,7 +957,7 @@ function renderWindDragonPoints() {
   });
 
   const summary = $('wind-dragon-summary');
-  if (summary) summary.textContent = 'Wind & Dragon points total: ' + fanToPoints(windDragonTotal);
+  if (summary) summary.textContent = 'Wind & Dragon fan total: ' + formatFan(windDragonTotal);
 
   const windDragonPanel = container.closest('.tile-panel');
   if (windDragonPanel) {
@@ -1030,7 +1052,7 @@ function renderWinningConditions() {
     info.appendChild(desc);
     const fan = document.createElement('span');
     fan.className = 'hand-fan';
-    fan.textContent = fanToPoints(c.fan) + ' points';
+    fan.textContent = formatFan(c.fan);
 
     label.appendChild(checkbox);
     label.appendChild(info);
@@ -1045,6 +1067,10 @@ const POINTS_MAP = [0, 2, 4, 8, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384];
 
 function fanToPoints(fan: number): number {
   return POINTS_MAP[Math.min(fan, 13)] ?? 0;
+}
+
+function formatFan(fan: number): string {
+  return `${fan} fan`;
 }
 
 function getTotalFan(): number {
@@ -1067,8 +1093,7 @@ function renderReferenceTotal() {
   const el = $('fan-reference-total');
   if (!el) return;
   const totalFan = getTotalFan();
-  const totalPoints = fanToPoints(totalFan);
-  el.textContent = `${totalPoints} points`;
+  el.textContent = formatFan(totalFan);
 }
 
 function renderFanBreakdown() {
@@ -1087,11 +1112,7 @@ function renderFanBreakdown() {
     if (flowerIncluded[s.id] && flowerDetected[s.id]!.applies) flowerTotal += s.fan;
   });
 
-  const handPoints = fanToPoints(handResult.fan);
-  const winningPoints = fanToPoints(winningFan);
-  const windDragonPoints = fanToPoints(windDragonTotal);
-  const flowerPoints = fanToPoints(flowerTotal);
-  const totalPoints = fanToPoints(getTotalFan());
+  const totalFan = getTotalFan();
 
   function addSection(label: string, points: number, negated: boolean, tags: { text: string; desc: string }[]) {
     const section = document.createElement('div');
@@ -1106,7 +1127,7 @@ function renderFanBreakdown() {
 
     const value = document.createElement('span');
     value.className = 'fan-breakdown-value';
-    value.textContent = `${points} points`;
+    value.textContent = formatFan(points);
 
     header.appendChild(title);
     header.appendChild(value);
@@ -1161,9 +1182,9 @@ function renderFanBreakdown() {
     windDragonScenarios.forEach((s) => {
       if (s.stepper) {
         const value = (windDragonState[s.id] as number | undefined) ?? 0;
-        if (value > 0) windDragonTags.push({ text: s.name + ' (' + fanToPoints(value) + ' points)', desc: s.desc });
+        if (value > 0) windDragonTags.push({ text: s.name + ' (' + formatFan(value) + ')', desc: s.desc });
       } else if (windDragonState[s.id] && windDragonDetected[s.id]!.applies) {
-        windDragonTags.push({ text: s.name + ' (' + fanToPoints(windDragonDetected[s.id]!.fan) + ' points)', desc: s.desc });
+        windDragonTags.push({ text: s.name + ' (' + formatFan(windDragonDetected[s.id]!.fan) + ')', desc: s.desc });
       }
     });
   }
@@ -1172,82 +1193,230 @@ function renderFanBreakdown() {
   if (!handResult.limit) {
     flowerScenarios.forEach((s) => {
       if (s.id === 'seat-flower') {
-        if (seatFlowerValue > 0) flowerTags.push({ text: s.name + ' (' + fanToPoints(seatFlowerValue) + ' points)', desc: s.desc });
+        if (seatFlowerValue > 0) flowerTags.push({ text: s.name + ' (' + formatFan(seatFlowerValue) + ')', desc: s.desc });
       } else if (flowerIncluded[s.id] && flowerDetected[s.id]!.applies) {
-        flowerTags.push({ text: s.name + ' (' + fanToPoints(flowerDetected[s.id]!.fan) + ' points)', desc: s.desc });
+        flowerTags.push({ text: s.name + ' (' + formatFan(flowerDetected[s.id]!.fan) + ')', desc: s.desc });
       }
     });
   }
 
-  addSection('Hand patterns', handPoints, false, handTags);
-  addSection('Winning conditions', winningPoints, false, winningTags);
-  addSection('Wind & Dragon points', windDragonPoints, handResult.limit, windDragonTags);
-  addSection('Flower points', flowerPoints, handResult.limit, flowerTags);
+  addSection('Hand patterns', handResult.fan, false, handTags);
+  addSection('Winning conditions', winningFan, false, winningTags);
+  addSection('Wind & Dragon fan', windDragonTotal, handResult.limit, windDragonTags);
+  addSection('Flower fan', flowerTotal, handResult.limit, flowerTags);
 
   const totalRow = document.createElement('div');
   totalRow.className = 'fan-breakdown-total-row';
   const totalLabel = document.createElement('span');
   totalLabel.className = 'fan-breakdown-total-label';
-  totalLabel.textContent = 'Total';
+  totalLabel.textContent = 'Total fan';
   const totalValue = document.createElement('span');
   totalValue.className = 'fan-breakdown-total';
-  totalValue.textContent = `${totalPoints} points`;
+  totalValue.textContent = formatFan(totalFan);
   totalRow.appendChild(totalLabel);
   totalRow.appendChild(totalValue);
   container.appendChild(totalRow);
 }
 
-async function copyHandToClipboard() {
-  const lines: string[] = [];
-  const tiles = getSortedTiles(selected);
-  if (tiles.length === 0) {
-    lines.push('No tiles selected');
-  } else {
-    const tileStrs = tiles.map((t) => t.c);
-    lines.push('Tiles: ' + tileStrs.join(' '));
-  }
+interface CheckoutSummary {
+  totalPoints: number;
+  totalFan: number;
+  totalTiles: number;
+  tiles: string;
+  checkedConditions: string[];
+  pungs: number;
+  chows: number;
+  kongs: number;
+  melds: { type: string; tiles: string }[];
+  tableWind: string;
+  seatWind: string;
+}
 
-  const conditions: string[] = [];
+function getWindLabel(value: string): string {
+  return ({ e: 'East', s: 'South', w: 'West', n: 'North' } as Record<string, string>)[value] ?? value;
+}
+
+function getCheckoutSummary(): CheckoutSummary {
+  const tiles = getSortedTiles(selected);
+  const totalTiles = tiles.length;
+
+  const checkedConditions: string[] = [];
   handPatterns.forEach((p) => {
-    if (handPatternState[p.id]) conditions.push(p.name + ' (' + fanToPoints(p.fan) + ' points)');
+    if (handPatternState[p.id]) checkedConditions.push(p.name + ' (' + formatFan(p.fan) + ')');
   });
   const windDragonDetected = detectWindDragonFaan(selected, seatWind, tableWind);
   windDragonScenarios.forEach((s) => {
     if (s.stepper) {
       const value = (windDragonState[s.id] as number | undefined) ?? 0;
-      if (value > 0) conditions.push(s.name + ' (' + fanToPoints(value) + ' points)');
+      if (value > 0) checkedConditions.push(s.name + ' (' + formatFan(value) + ')');
     } else if (windDragonState[s.id] && windDragonDetected[s.id]!.applies) {
-      conditions.push(s.name + ' (' + fanToPoints(windDragonDetected[s.id]!.fan) + ' points)');
+      checkedConditions.push(s.name + ' (' + formatFan(windDragonDetected[s.id]!.fan) + ')');
     }
   });
   const flowerDetected = calculateFlowerScenarios(selected, seatWind);
   flowerScenarios.forEach((s) => {
     if (s.id === 'seat-flower') {
       const value = seatFlowerOverride !== null ? seatFlowerOverride : flowerDetected['seat-flower']!.fan;
-      if (value > 0) conditions.push(s.name + ' (' + fanToPoints(value) + ' points)');
+      if (value > 0) checkedConditions.push(s.name + ' (' + formatFan(value) + ')');
     } else if (flowerIncluded[s.id] && flowerDetected[s.id]!.applies) {
-      conditions.push(s.name + ' (' + fanToPoints(flowerDetected[s.id]!.fan) + ' points)');
+      checkedConditions.push(s.name + ' (' + formatFan(flowerDetected[s.id]!.fan) + ')');
     }
   });
   winningConditions.forEach((c) => {
-    if (winningConditionState[c.id]) conditions.push(c.name + ' (' + fanToPoints(c.fan) + ' points)');
+    if (winningConditionState[c.id]) checkedConditions.push(c.name + ' (' + formatFan(c.fan) + ')');
   });
 
-  if (conditions.length > 0) {
-    lines.push('Checked conditions: ' + conditions.join(', '));
-  }
+  const pungs = melds.filter((m) => m.type === 'pung').length;
+  const chows = melds.filter((m) => m.type === 'chow').length;
+  const kongs = melds.filter((m) => m.type === 'kong').length;
+  const meldDetails = melds.map((m) => ({
+    type: m.type.toUpperCase(),
+    tiles: m.tiles.map((id) => findTile(id)?.c ?? id).join(' '),
+  }));
+
+  const freeSelected = getFreeSelected();
+  const freeTiles = getSortedTiles(freeSelected).filter((t) => !isBonusTile(t.id));
+  const freeTileStrs = freeTiles.map((t) => t.c);
+  const bonusTiles = tiles.filter((t) => isBonusTile(t.id));
+  const bonusTileStrs = bonusTiles.map((t) => t.c);
+
+  const meldParts = meldDetails.map((m) => `${m.type}[ ${m.tiles} ]`);
+  const structuredTiles = [
+    ...meldParts,
+    ...(freeTileStrs.length ? freeTileStrs : []),
+    ...(bonusTileStrs.length ? ['|', ...bonusTileStrs] : []),
+  ].join(' ') || 'None';
 
   const totalFan = getTotalFan();
-  const totalPoints = fanToPoints(totalFan);
-  lines.push(`Total: ${totalPoints} points`);
+  return {
+    totalPoints: fanToPoints(totalFan),
+    totalFan,
+    totalTiles,
+    tiles: structuredTiles,
+    checkedConditions,
+    pungs,
+    chows,
+    kongs,
+    melds: meldDetails,
+    tableWind: getWindLabel(tableWind),
+    seatWind: getWindLabel(seatWind),
+  };
+}
 
-  const text = lines.join('\n');
+function buildGoogleFormPrefillUrl(name: string, email: string, summary: CheckoutSummary): string {
+  const base = `https://docs.google.com/forms/d/e/${GOOGLE_FORM_CONFIG.formId}/viewform`;
+  const params = new URLSearchParams({ usp: 'pp_url' });
+  const e = GOOGLE_FORM_CONFIG.entries;
+
+  function add(entryId: string, value: string) {
+    if (entryId && !entryId.startsWith('YOUR_')) {
+      params.append(`entry.${entryId}`, value);
+    }
+  }
+
+  add(e.name, name);
+  add(e.email, email);
+  add(e.totalPoints, String(summary.totalPoints));
+  add(e.totalTiles, String(summary.totalTiles));
+  add(e.tiles, summary.tiles);
+  add(e.checkedConditions, summary.checkedConditions.join('\n'));
+  add(e.pungs, String(summary.pungs));
+  add(e.chows, String(summary.chows));
+  add(e.kongs, String(summary.kongs));
+  add(e.tableWind, summary.tableWind);
+  add(e.seatWind, summary.seatWind);
+
+  return `${base}?${params.toString()}`;
+}
+
+function renderCheckoutDetails() {
+  const container = $('checkout-details');
+  if (!container) return;
+  const summary = getCheckoutSummary();
+
+  const conditionsHtml = summary.checkedConditions.length
+    ? `<ul>${summary.checkedConditions.map((c) => `<li>${escapeHtml(c)}</li>`).join('')}</ul>`
+    : '<p>No conditions selected.</p>';
+
+  container.innerHTML = `
+    <h4>Hand summary</h4>
+    <p><strong>Total fan:</strong> ${formatFan(summary.totalFan)}</p>
+    <p><strong>Total points:</strong> ${summary.totalPoints}</p>
+    <p><strong>Total tiles:</strong> ${summary.totalTiles}</p>
+    <p><strong>Tiles:</strong> ${summary.tiles || 'None'}</p>
+    <p><strong>Table wind:</strong> ${summary.tableWind}</p>
+    <p><strong>Seat wind:</strong> ${summary.seatWind}</p>
+    <h4>Checked conditions</h4>
+    ${conditionsHtml}
+  `;
+}
+
+function escapeHtml(text: string): string {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+async function copyCheckoutDetailsToClipboard() {
+  const summary = getCheckoutSummary();
+  const name = ($('checkout-name') as HTMLInputElement | null)?.value.trim() ?? '';
+  const email = ($('checkout-email') as HTMLInputElement | null)?.value.trim() ?? '';
+
+  const lines: string[] = [
+    'Name: ' + (name || 'Not provided'),
+    'Email: ' + (email || 'Not provided'),
+    'Total fan: ' + formatFan(summary.totalFan),
+    'Total points: ' + summary.totalPoints,
+    'Total tiles: ' + summary.totalTiles,
+    'Tiles: ' + (summary.tiles || 'None'),
+    'Table wind: ' + summary.tableWind,
+    'Seat wind: ' + summary.seatWind,
+  ];
+  if (summary.checkedConditions.length) {
+    lines.push('Checked conditions:');
+    summary.checkedConditions.forEach((c) => lines.push('- ' + c));
+  }
+
   try {
-    await navigator.clipboard.writeText(text);
-    alert('Copied hand to clipboard!');
+    await navigator.clipboard.writeText(lines.join('\n'));
+    alert('Hand details copied to clipboard!');
   } catch (err) {
     console.error('Failed to copy:', err);
   }
+}
+
+function openCheckoutModal() {
+  const modal = $('checkout-modal');
+  if (!modal) return;
+  renderCheckoutDetails();
+  modal.style.display = 'flex';
+  ($('checkout-name') as HTMLInputElement | null)?.focus();
+}
+
+function closeCheckoutModal() {
+  const modal = $('checkout-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function submitCheckout(e: Event) {
+  e.preventDefault();
+  const name = ($('checkout-name') as HTMLInputElement | null)?.value.trim() ?? '';
+  const email = ($('checkout-email') as HTMLInputElement | null)?.value.trim() ?? '';
+  if (!name || !email) {
+    alert('Please enter your name and email.');
+    return;
+  }
+
+  const summary = getCheckoutSummary();
+  const url = buildGoogleFormPrefillUrl(name, email, summary);
+
+  if (GOOGLE_FORM_CONFIG.formId.startsWith('YOUR_')) {
+    alert('Google Form is not configured yet. Copy the hand details and share them manually.');
+    return;
+  }
+
+  window.open(url, '_blank', 'noopener,noreferrer');
+  closeCheckoutModal();
 }
 
 function clearHand() {
@@ -1287,10 +1456,24 @@ function setMeldMode(mode: 'chow' | 'pung' | 'kong' | null) {
   }
 });
 
-const copyHand = $('copy-hand');
-if (copyHand) {
-  copyHand.addEventListener('click', copyHandToClipboard);
+const checkoutHand = $('checkout-hand');
+if (checkoutHand) {
+  checkoutHand.addEventListener('click', openCheckoutModal);
 }
+
+const checkoutModal = $('checkout-modal');
+const checkoutModalClose = $('checkout-modal-close');
+const checkoutForm = $('checkout-form');
+const checkoutCopy = $('checkout-copy');
+
+if (checkoutModalClose) checkoutModalClose.addEventListener('click', closeCheckoutModal);
+if (checkoutModal) {
+  checkoutModal.addEventListener('click', (e) => {
+    if (e.target === checkoutModal) closeCheckoutModal();
+  });
+}
+if (checkoutForm) checkoutForm.addEventListener('submit', submitCheckout);
+if (checkoutCopy) checkoutCopy.addEventListener('click', copyCheckoutDetailsToClipboard);
 
 const seatWindEl = $('seat-wind');
 if (seatWindEl) {
@@ -1389,6 +1572,6 @@ document.querySelectorAll('.tile-panel.collapsible .panel-title').forEach((title
     } else {
       collapsedSections.add(id);
     }
-    panel.classList.toggle('collapsed');
+    if (panel) panel.classList.toggle('collapsed');
   });
 });

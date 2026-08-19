@@ -907,7 +907,7 @@ export interface FlowerScenario {
 
 export const flowerScenarios: FlowerScenario[] = [
   { id: 'no-flowers', name: 'No Flowers (无花)', fan: 1, desc: 'Have no flowers or seasons' },
-  { id: 'seat-flower', name: 'Seat Flower (正花)', fan: 0, desc: 'Have the flower and/or season matching your seat (0, 1, or 2 points)' },
+  { id: 'seat-flower', name: 'Seat Flower (正花)', fan: 0, desc: 'Have the flower and/or season matching your seat (0, 1, or 2 fan)' },
   { id: 'flower-set', name: 'Set of Flowers (一台花)', fan: 2, desc: 'Have all 4 flowers or all 4 seasons' },
   { id: 'seven-flowers', name: '7 Flowers (花糊)', fan: 3, desc: 'Draw 7 flowers/seasons' },
   { id: 'eight-flowers', name: '8 Flowers (八仙過海)', fan: 8, desc: 'Draw 8 flowers/seasons' },
@@ -953,7 +953,7 @@ export interface WindDragonScenario {
 export const windDragonScenarios: WindDragonScenario[] = [
   { id: 'seat-wind', name: 'Seat Wind (門風)', fan: 1, desc: 'A meld of your seat wind.' },
   { id: 'prevailing-wind', name: 'Prevailing Wind (圈風)', fan: 1, desc: 'A meld of the prevailing (table) wind.' },
-  { id: 'dragons', name: 'Dragons (三元)', fan: 0, desc: '0/2/4/8 points per dragon triplet/kong (0–3).', stepper: true, max: 3 },
+  { id: 'dragons', name: 'Dragons (三元)', fan: 0, desc: '0/1/2/3 fan per dragon triplet/kong (0–3).', stepper: true, max: 3 },
 ];
 
 export function detectWindDragonFaan(
@@ -1011,8 +1011,8 @@ export const winningConditions: WinningCondition[] = [
   { id: 'concealed', name: 'Concealed Hand (門前清)', desc: 'No open melds (chows or pungs claimed from others).', fan: 1, highlight: true },
   { id: 'robbing-kong', name: 'Robbing the Kong (槓上開花)', desc: 'Won by claiming the tile used to promote a kong', fan: 1, highlight: false },
   { id: 'last-tile', name: 'Last Catch (海底撈月)', desc: 'Won on the final drawable tile from the wall or final discard', fan: 1, highlight: false },
-  { id: 'win-by-kong', name: 'Win by Kong (槓上開花)', desc: 'The winning tile is from a replacement tile due to a Kong or a Bonus Tile. Implies self-pick (which adds 2 additional points).', fan: 1, highlight: false },
-  { id: 'win-by-double-kong', name: 'Win by Double-Kong (槓上槓)', desc: 'Similar to Win by Kong, except that the tile used to make the Kong was itself an extra tile from declaring a Kong. Implies self-pick (which adds 2 additional points).', fan: 8, highlight: false },
+  { id: 'win-by-kong', name: 'Win by Kong (槓上開花)', desc: 'The winning tile is from a replacement tile due to a Kong or a Bonus Tile. Implies self-pick (which adds 1 additional fan).', fan: 1, highlight: false },
+  { id: 'win-by-double-kong', name: 'Win by Double-Kong (槓上槓)', desc: 'Similar to Win by Kong, except that the tile used to make the Kong was itself an extra tile from declaring a Kong. Implies self-pick (which adds 1 additional fan).', fan: 8, highlight: false },
   { id: 'heavenly-hand', name: 'Heavenly Hand (天糊)', desc: 'East wins with the initial hand', fan: 13, highlight: false },
   { id: 'earthly-hand', name: 'Earthly Hand (地糊)', desc: "Non-East player wins on East's first discard", fan: 13, highlight: false },
 ];

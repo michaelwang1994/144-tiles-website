@@ -455,6 +455,104 @@
 .modal-body .hand-item { min-width: 0; }
 .modal-body .hand-item .hand-desc,
 .modal-body .hand-item .hand-fan { white-space: normal; }
+.checkout-intro {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin: 0 0 16px;
+  line-height: 1.5;
+}
+.checkout-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.checkout-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 13px;
+  color: var(--ink);
+  font-weight: 600;
+}
+.checkout-form input {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(155,27,27,0.25);
+  background: #fff;
+  color: var(--ink);
+}
+.checkout-form input:focus {
+  outline: none;
+  border-color: var(--red);
+  box-shadow: 0 0 0 2px rgba(155,27,27,0.12);
+}
+.checkout-details {
+  background: rgba(155,27,27,0.04);
+  border-radius: 8px;
+  padding: 12px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 12px;
+  color: var(--ink);
+  line-height: 1.5;
+}
+.checkout-details h4 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.checkout-details p {
+  margin: 0 0 6px;
+}
+.checkout-details ul {
+  margin: 0 0 10px;
+  padding-left: 18px;
+}
+.checkout-details li {
+  margin-bottom: 3px;
+}
+.checkout-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.checkout-submit,
+.checkout-copy {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 16px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.checkout-submit {
+  background: var(--red);
+  color: var(--cream);
+}
+.checkout-submit:hover {
+  background: var(--red-deep, #7a1212);
+}
+.checkout-copy {
+  background: transparent;
+  color: var(--red);
+  border: 1.5px solid var(--red);
+}
+.checkout-copy:hover {
+  background: rgba(155,27,27,0.08);
+}
+.checkout-note {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 11px;
+  color: var(--ink-soft);
+  margin: 4px 0 0;
+  line-height: 1.4;
+}
 .modal-header {
   display: flex;
   align-items: center;
@@ -518,7 +616,7 @@ footer.calc-footer {
   <div class="hero-grid hero-noimage" style="justify-items: center; text-align: center;">
     <div>
       <h1 class="hero-title"><span class="script">Points</span> Calculator</h1>
-      <p class="hero-tagline" style="max-width: 46ch; margin-left: auto; margin-right: auto;">Select your tiles to build your hand, then use the points reference to score it.</p>
+      <p class="hero-tagline" style="max-width: 46ch; margin-left: auto; margin-right: auto;">Select your tiles to build your hand, then use the fan reference to score it.</p>
       <p class="hero-tagline" style="max-width: 52ch; margin-left: auto; margin-right: auto; font-size: 15px; color: var(--cream); margin-top: 12px;">Our recommendation is to add tiles as they are revealed from your hand to keep track of what remaining potential hands can be formed.</p>
     </div>
   </div>
@@ -584,34 +682,34 @@ footer.calc-footer {
     <div class="panel-title">Hand patterns</div>
     <div class="panel-subtitle">Auto-detected winning hand patterns from your tiles.</div>
     <div class="hand-list" id="hand-patterns"></div>
-    <div class="hand-summary" id="hand-pattern-summary">Hand pattern points total: 0</div>
+    <div class="hand-summary" id="hand-pattern-summary">Hand pattern fan total: 0 fan</div>
   </div>
 </section>
 
 <section class="calc-section" style="padding-top: 0;">
   <div class="tile-panel collapsible">
-    <div class="panel-title">Wind &amp; Dragon points</div>
-    <div class="panel-subtitle">Auto-detected wind and dragon scoring. A double wind (seat = table) counts as 4 points.</div>
+    <div class="panel-title">Wind &amp; Dragon fan</div>
+    <div class="panel-subtitle">Auto-detected wind and dragon scoring. A double wind (seat = table) counts as 2 fan.</div>
     <div class="hand-list" id="wind-dragon-scenarios"></div>
-    <div class="hand-summary" id="wind-dragon-summary">Wind &amp; Dragon points total: 0</div>
+    <div class="hand-summary" id="wind-dragon-summary">Wind &amp; Dragon fan total: 0 fan</div>
   </div>
 </section>
 
 <section class="calc-section flower-points-section" style="padding-top: 0;">
   <div class="tile-panel collapsible">
-    <div class="panel-title">Flower points</div>
+    <div class="panel-title">Flower fan</div>
     <div class="panel-subtitle">Auto-detected flower and season scoring from your tiles.</div>
     <div class="hand-list" id="flower-scenarios"></div>
-    <div class="hand-summary" id="flower-summary">Flower points total: 0</div>
+    <div class="hand-summary" id="flower-summary">Flower fan total: 0 fan</div>
   </div>
 </section>
 
 <section class="calc-section fan-reference-sticky" style="padding-top: 0;">
-  <div class="drag-handle" role="button" tabindex="0" aria-label="Drag to expand or collapse Your points"></div>
+  <div class="drag-handle" role="button" tabindex="0" aria-label="Drag to expand or collapse Your fan"></div>
   <div class="table-panel">
     <div class="panel-title">
       <span>
-        Your points
+        Your fan
         <span class="fan-reference-total" id="fan-reference-total"></span>
       </span>
     </div>
@@ -622,13 +720,16 @@ footer.calc-footer {
     </div>
     <div class="fan-table-scroll">
       <table class="fan-table" id="fan-table">
-        <tbody><tr><th>Points</th><td>0</td><td>2</td><td>4</td><td>8</td><td>16</td><td>24</td><td>32</td><td>48</td><td>64</td><td>96</td><td>128</td><td>192</td><td>256</td><td>384</td></tr></tbody>
+        <tbody>
+          <tr><th>Fan</th><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td><td>10</td><td>11</td><td>12</td><td>13</td></tr>
+          <tr><th>Points</th><td>0</td><td>2</td><td>4</td><td>8</td><td>16</td><td>24</td><td>32</td><td>48</td><td>64</td><td>96</td><td>128</td><td>192</td><td>256</td><td>384</td></tr>
+        </tbody>
       </table>
     </div>
     <div class="fan-reference-hand" id="fan-reference-hand">
       <span class="fan-reference-hand-label">Your hand</span>
       <button id="clear-tiles" class="clear-hand-btn">Clear tiles</button>
-      <button id="copy-hand" class="clear-hand-btn" type="button" disabled>Copy hand</button>
+      <button id="checkout-hand" class="clear-hand-btn" type="button" disabled>Checkout</button>
       <span class="fan-reference-hand-content" id="fan-reference-hand-content"></span>
     </div>
     <div class="fan-breakdown" id="fan-breakdown"></div>
@@ -659,6 +760,34 @@ footer.calc-footer {
     </div>
     <div class="modal-body">
       <p id="condition-modal-desc"></p>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="checkout-modal" style="display: none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Checkout</h3>
+      <button id="checkout-modal-close" class="modal-close" type="button" aria-label="Close">×</button>
+    </div>
+    <div class="modal-body">
+      <p class="checkout-intro">Enter your details to submit this winning hand to the leaderboard.</p>
+      <form id="checkout-form" class="checkout-form">
+        <label>
+          <span>Name</span>
+          <input type="text" id="checkout-name" name="name" placeholder="Your name" required>
+        </label>
+        <label>
+          <span>Email</span>
+          <input type="email" id="checkout-email" name="email" placeholder="your@email.com" required>
+        </label>
+        <div class="checkout-details" id="checkout-details"></div>
+        <div class="checkout-actions">
+          <button type="submit" class="checkout-submit">Submit to Google Form</button>
+          <button type="button" id="checkout-copy" class="checkout-copy">Copy details</button>
+        </div>
+        <p class="checkout-note">Google Form integration requires configuring the form ID and entry IDs in the code.</p>
+      </form>
     </div>
   </div>
 </div>
