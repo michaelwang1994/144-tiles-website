@@ -104,13 +104,22 @@
 .fan-reference-hidden .table-panel { padding-top: 6px; padding-bottom: 6px; }
 .fan-reference-hidden .panel-title { margin-bottom: 0; }
 .drag-handle {
-  width: 40px;
-  height: 5px;
+  width: 48px;
+  height: 6px;
   border-radius: 3px;
   background: var(--ink-soft);
   margin: 8px auto 0;
   cursor: grab;
   touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  position: relative;
+}
+.drag-handle::before {
+  content: '';
+  position: absolute;
+  inset: -14px -20px;
 }
 .fan-reference-sticky.dragging { transition: none; user-select: none; }
 .drag-handle:active { cursor: grabbing; }
@@ -684,31 +693,42 @@ footer.calc-footer {
     let startY = 0;
     let startHeight = 0;
     let hasMoved = false;
+    let ignoreNextClick = false;
 
-    dragHandle.addEventListener('pointerdown', (e) => {
+    function getClientY(e) {
+      if (e.touches && e.touches.length > 0) return e.touches[0].clientY;
+      if (e.changedTouches && e.changedTouches.length > 0) return e.changedTouches[0].clientY;
+      return e.clientY;
+    }
+
+    function startDrag(e) {
       e.preventDefault();
       dragging = true;
       hasMoved = false;
-      startY = e.clientY;
+      ignoreNextClick = true;
+      startY = getClientY(e);
       startHeight = panel.getBoundingClientRect().height;
       panel.classList.add('dragging');
-      dragHandle.setPointerCapture(e.pointerId);
-    });
+      if (e.pointerId != null) dragHandle.setPointerCapture(e.pointerId);
+    }
 
-    dragHandle.addEventListener('pointermove', (e) => {
+    function moveDrag(e) {
       if (!dragging) return;
-      const delta = startY - e.clientY;
+      const clientY = getClientY(e);
+      if (clientY == null) return;
+      const delta = startY - clientY;
       if (Math.abs(delta) > 10) hasMoved = true;
       const target = Math.max(collapsedHeight, Math.min(expandedHeight(), startHeight + delta));
       panel.style.maxHeight = target + 'px';
-    });
+    }
 
     function endDrag(e) {
       if (!dragging) return;
       dragging = false;
       panel.classList.remove('dragging');
       if (e && e.pointerId != null) dragHandle.releasePointerCapture(e.pointerId);
-      const delta = startY - (e ? e.clientY : startY);
+      const clientY = e ? getClientY(e) : startY;
+      const delta = startY - clientY;
       if (!hasMoved || Math.abs(delta) <= 10) {
         const hidden = !panel.classList.contains('fan-reference-hidden');
         setPanelHidden(hidden);
@@ -720,8 +740,28 @@ footer.calc-footer {
       panel.style.maxHeight = '';
     }
 
-    dragHandle.addEventListener('pointerup', endDrag);
-    dragHandle.addEventListener('pointercancel', endDrag);
+    if (window.PointerEvent) {
+      dragHandle.addEventListener('pointerdown', startDrag, { passive: false });
+      dragHandle.addEventListener('pointermove', moveDrag, { passive: false });
+      dragHandle.addEventListener('pointerup', endDrag);
+      dragHandle.addEventListener('pointercancel', endDrag);
+    } else {
+      dragHandle.addEventListener('touchstart', startDrag, { passive: false });
+      dragHandle.addEventListener('touchmove', moveDrag, { passive: false });
+      dragHandle.addEventListener('touchend', endDrag);
+      dragHandle.addEventListener('touchcancel', endDrag);
+    }
+
+    dragHandle.addEventListener('click', (e) => {
+      if (ignoreNextClick) {
+        ignoreNextClick = false;
+        return;
+      }
+      e.preventDefault();
+      const hidden = !panel.classList.contains('fan-reference-hidden');
+      setPanelHidden(hidden);
+    });
+
     dragHandle.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
