@@ -301,6 +301,7 @@ function updateTileUI() {
   renderHandPatterns();
   renderWindDragonPoints();
   renderFlowerPoints();
+  renderWinningConditions();
 
   const copyHand = $('copy-hand') as HTMLButtonElement | null;
   if (copyHand) copyHand.disabled = !isValidWinningHand(selected, melds) || getTotalFan() === 0;
