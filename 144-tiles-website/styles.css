@@ -888,6 +888,16 @@ a { color: inherit; }
 .tile-panel, .hands-panel, .result-panel, .table-panel { background: #fff; border: 1px solid rgba(155,27,27,0.12); border-radius: 14px; padding: 28px; }
 .panel-title { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--red); margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
 .panel-subtitle { font-family: 'Montserrat', sans-serif; font-size: 13px; color: var(--ink-soft); margin-bottom: 18px; line-height: 1.5; }
+.tile-panel.collapsed > *:not(.panel-title) { display: none; }
+.tile-panel.collapsible .panel-title { cursor: pointer; }
+.tile-panel.collapsible .panel-title::after {
+  content: '▼';
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--ink-soft);
+  transition: transform 0.2s ease;
+}
+.tile-panel.collapsed .panel-title::after { transform: rotate(-90deg); }
 
 .tile-suit { margin-bottom: 18px; }
 .tile-suit-label { font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 8px; }
@@ -903,18 +913,28 @@ a { color: inherit; }
   transition: transform 0.12s, box-shadow 0.12s, border-color 0.12s;
   position: relative;
 }
-.tile-glyph { font-size: 45px; line-height: 1; transition: font-size 0.12s; }
-.tile.selected .tile-glyph { font-size: 45px; }
+.tile-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 2px;
+  box-sizing: border-box;
+  pointer-events: none;
+}
 .tile-label {
-  position: absolute; top: 2px; left: 3px;
-  font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 700;
+  position: absolute; top: 2px; right: 3px;
+  font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 700;
   color: var(--ink-soft);
+  background: #fff;
+  padding: 1px 3px;
+  border-radius: 3px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 .tile:hover { transform: translateY(-2px); box-shadow: 0 4px 0 rgba(0,0,0,0.1); border-color: var(--red); }
 .tile.selected { background: linear-gradient(180deg, var(--cream) 0%, #efe4c8 100%); border-color: var(--red); box-shadow: 0 2px 0 var(--red); }
 .tile.maxed { opacity: 0.45; cursor: not-allowed; }
 .tile .count {
-  position: absolute; top: 2px; right: 3px;
+  position: absolute; top: 2px; left: 3px;
   font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 700;
   color: var(--red); background: #fff; border-radius: 8px; padding: 1px 4px;
   border: 1px solid var(--red);
@@ -948,12 +968,9 @@ a { color: inherit; }
   display: flex; align-items: flex-start; gap: 10px;
   padding: 10px 12px; border-radius: 8px;
   border: 1px solid rgba(155,27,27,0.08);
-  cursor: pointer; transition: background 0.15s;
+  cursor: default; transition: background 0.15s;
 }
 .hand-item:hover { background: rgba(155,27,27,0.04); }
-.hand-item input { margin-top: 3px; accent-color: var(--red); }
-.hand-item.important { background: rgba(46,125,50,0.08); border-color: rgba(46,125,50,0.18); }
-.hand-item.important:hover { background: rgba(46,125,50,0.12); }
 .hand-name { font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 600; color: var(--ink); }
 .hand-fan { font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 700; color: var(--red); margin-left: auto; white-space: nowrap; }
 .hand-desc { font-family: 'Montserrat', sans-serif; font-size: 11px; color: var(--ink-soft); line-height: 1.4; margin-top: 2px; }

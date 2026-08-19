@@ -23,11 +23,151 @@ import {
   detectWindDragonFaan,
   getWindDragonFan,
   winningConditions,
+  type LockedGroup,
 } from './points-calculator';
 
 function $(id: string) { return document.getElementById(id); }
 
 const selected: Record<string, number> = {}; // tile id -> count
+const melds: LockedGroup[] = [];
+let activeMeldMode: 'chow' | 'pung' | 'kong' | null = null;
+let chowSelection: string[] = [];
+const collapsedSections = new Set<string>();
+
+function hasOpenMeld(): boolean {
+  return melds.some((m) => m.type === 'chow' || m.type === 'pung');
+}
+
+function getMeldTileCount(id: string): number {
+  return melds.reduce((sum, m) => sum + m.tiles.filter((t) => t === id).length, 0);
+}
+
+function getFreeCount(id: string): number {
+  return Math.max(0, (selected[id] || 0) - getMeldTileCount(id));
+}
+
+function getFreeSelected(): Record<string, number> {
+  const free: Record<string, number> = {};
+  Object.keys(selected).forEach((id) => {
+    const count = (selected[id] || 0) - getMeldTileCount(id);
+    if (count > 0) free[id] = count;
+  });
+  return free;
+}
+
+function simulateAddTiles(additions: Record<string, number>): boolean {
+  const modified: string[] = [];
+  const original: Record<string, number> = {};
+  let ok = true;
+  for (const id of Object.keys(additions)) {
+    const tile = findTile(id);
+    if (!tile) { ok = false; break; }
+    const before = selected[id] || 0;
+    if (before + additions[id]! > tile.max) { ok = false; break; }
+    selected[id] = before + additions[id]!;
+    original[id] = before;
+    modified.push(id);
+  }
+  let totalOk = false;
+  if (ok) {
+    const stats = getHandStats(selected);
+    totalOk = stats.total <= stats.max;
+  }
+  modified.forEach((id) => {
+    selected[id] = original[id]!;
+    if (original[id] === 0) delete selected[id];
+  });
+  return ok && totalOk;
+}
+
+function isDisabledForMeldMode(id: string): boolean {
+  if (activeMeldMode === 'chow') return !isSuited(id) || isBonusTile(id);
+  if (activeMeldMode === 'pung' || activeMeldMode === 'kong') return isBonusTile(id);
+  return false;
+}
+
+function isSequentialChow(ids: string[]): boolean {
+  if (ids.length !== 3) return false;
+  const sorted = [...ids].sort();
+  if (!isSuited(sorted[0]!) || !isSuited(sorted[1]!) || !isSuited(sorted[2]!)) return false;
+  const p0 = parseTile(sorted[0]!);
+  const p1 = parseTile(sorted[1]!);
+  const p2 = parseTile(sorted[2]!);
+  return p0.suit === p1.suit && p1.suit === p2.suit && p0.rank + 1 === p1.rank && p1.rank + 1 === p2.rank;
+}
+
+function canCreatePung(id: string): boolean {
+  return simulateAddTiles({ [id]: 3 });
+}
+
+function createPung(id: string) {
+  if (!canCreatePung(id)) return;
+  selected[id] = (selected[id] || 0) + 3;
+  melds.push({ type: 'pung', tiles: [id, id, id] });
+  activeMeldMode = null;
+  updateTileUI();
+}
+
+function canCreateKong(id: string): boolean {
+  const pungIndex = melds.findIndex((m) => m.type === 'pung' && m.tiles[0] === id);
+  if (pungIndex !== -1) {
+    return getFreeCount(id) >= 1 || simulateAddTiles({ [id]: 1 });
+  }
+  const freeCount = getFreeCount(id);
+  if (freeCount >= 4) return true;
+  return simulateAddTiles({ [id]: 4 - freeCount });
+}
+
+function createKong(id: string) {
+  if (!canCreateKong(id)) return;
+  const pungIndex = melds.findIndex((m) => m.type === 'pung' && m.tiles[0] === id);
+  if (pungIndex !== -1) {
+    if (getFreeCount(id) < 1) selected[id] = (selected[id] || 0) + 1;
+    melds[pungIndex] = { type: 'kong', tiles: [id, id, id, id] };
+  } else {
+    const freeCount = getFreeCount(id);
+    const needed = 4 - freeCount;
+    if (needed > 0) selected[id] = (selected[id] || 0) + needed;
+    melds.push({ type: 'kong', tiles: [id, id, id, id] });
+  }
+  activeMeldMode = null;
+  updateTileUI();
+}
+
+function canCreateChow(ids: string[]): boolean {
+  if (!isSequentialChow(ids)) return false;
+  const additions: Record<string, number> = {};
+  ids.forEach((id) => {
+    additions[id] = (additions[id] || 0) + 1;
+  });
+  return simulateAddTiles(additions);
+}
+
+function createChow(ids: string[]) {
+  if (!canCreateChow(ids)) {
+    chowSelection = [];
+    updateTileUI();
+    return;
+  }
+  ids.forEach((id) => {
+    selected[id] = (selected[id] || 0) + 1;
+  });
+  melds.push({ type: 'chow', tiles: ids.slice().sort() });
+  chowSelection = [];
+  activeMeldMode = null;
+  updateTileUI();
+}
+
+function removeMeldAt(index: number) {
+  const meld = melds[index];
+  if (!meld) return;
+  meld.tiles.forEach((id) => {
+    selected[id] = (selected[id] || 0) - 1;
+    if ((selected[id] || 0) <= 0) delete selected[id];
+  });
+  melds.splice(index, 1);
+  updateTileUI();
+}
 
 function getTileLabel(id: string): string {
   const suit = id.charAt(0);
@@ -44,6 +184,16 @@ function getDragonClass(id: string) {
   if (id === 'dg') return 'dragon-green';
   if (id === 'dw') return 'dragon-blue';
   return '';
+}
+
+function createTileImage(tile: { id: string; c: string; img: string }) {
+  const img = document.createElement('img');
+  img.className = 'tile-img';
+  img.src = tile.img;
+  img.alt = tile.c;
+  img.draggable = false;
+  img.loading = 'lazy';
+  return img;
 }
 
 function renderTileSelector() {
@@ -64,13 +214,11 @@ function renderTileSelector() {
       btn.className = 'tile' + (getDragonClass(t.id) ? ' ' + getDragonClass(t.id) : '');
       (btn as HTMLElement).dataset.id = t.id;
       btn.title = t.id.toUpperCase();
-      const glyph = document.createElement('span');
-      glyph.className = 'tile-glyph';
-      glyph.textContent = t.c;
+      const img = createTileImage(t);
       const sub = document.createElement('span');
       sub.className = 'tile-label';
       sub.textContent = getTileLabel(t.id);
-      btn.appendChild(glyph);
+      btn.appendChild(img);
       btn.appendChild(sub);
       btn.addEventListener('click', () => { toggleTile(t); });
       row.appendChild(btn);
@@ -100,6 +248,24 @@ function canAddTile(tile: { id: string; max: number }) {
 }
 
 function toggleTile(tile: { id: string; max: number }) {
+  if (isDisabledForMeldMode(tile.id)) return;
+  if (activeMeldMode === 'pung') {
+    createPung(tile.id);
+    return;
+  }
+  if (activeMeldMode === 'kong') {
+    createKong(tile.id);
+    return;
+  }
+  if (activeMeldMode === 'chow') {
+    chowSelection.push(tile.id);
+    if (chowSelection.length === 3) {
+      createChow(chowSelection);
+    } else {
+      updateTileUI();
+    }
+    return;
+  }
   if (!canAddTile(tile)) return;
   selected[tile.id] = (selected[tile.id] || 0) + 1;
   if ((selected[tile.id] || 0) > tile.max) selected[tile.id] = 0;
@@ -112,7 +278,13 @@ function updateTileUI() {
     const id = (btn as HTMLElement).dataset.id!;
     const count = selected[id] || 0;
     const tileDef = findTile(id)!;
+    const lockedCount = getMeldTileCount(id);
+    const isPendingChow = activeMeldMode === 'chow' && chowSelection.includes(id);
+    const disabledForMeld = isDisabledForMeldMode(id);
     btn.classList.toggle('selected', count > 0);
+    btn.classList.toggle('locked', lockedCount > 0);
+    btn.classList.toggle('pending-chow', isPendingChow);
+    btn.classList.toggle('disabled-meld', disabledForMeld);
     btn.classList.toggle('maxed', count >= tileDef.max);
     let badge = btn.querySelector('.count');
     if (count > 1) {
@@ -122,6 +294,7 @@ function updateTileUI() {
       badge.remove();
     }
   });
+  updateMeldButtonStates();
   renderReferenceHand();
   renderMiniHand();
   renderPotentialHands();
@@ -130,31 +303,78 @@ function updateTileUI() {
   renderFlowerPoints();
 
   const copyHand = $('copy-hand') as HTMLButtonElement | null;
-  if (copyHand) copyHand.disabled = !isValidWinningHand(selected) || getTotalFan() === 0;
+  if (copyHand) copyHand.disabled = !isValidWinningHand(selected, melds) || getTotalFan() === 0;
   renderReferenceTotal();
+  renderFanBreakdown();
 }
 
-function makeRemovableTile(t: { id: string; c: string }, isFlower: boolean) {
+function makeRemovableTile(t: { id: string; c: string; img: string }, isFlower: boolean, locked = false) {
   const span = document.createElement('span');
-  span.className = 'tile selected' + (isFlower ? ' flower' : '') + ' removable' + (getDragonClass(t.id) ? ' ' + getDragonClass(t.id) : '');
-  span.title = 'Tap to remove';
-  const glyph = document.createElement('span');
-  glyph.className = 'tile-glyph';
-  glyph.textContent = t.c;
+  span.className = 'tile selected' + (isFlower ? ' flower' : '') + (locked ? ' locked' : ' removable') + (getDragonClass(t.id) ? ' ' + getDragonClass(t.id) : '');
+  span.title = locked ? 'Locked in meld (tap meld to remove)' : 'Tap to remove';
+  const img = createTileImage(t);
   const sub = document.createElement('span');
   sub.className = 'tile-label';
   sub.textContent = getTileLabel(t.id);
-  span.appendChild(glyph);
+  span.appendChild(img);
   span.appendChild(sub);
-  span.addEventListener('click', () => { removeTile(t.id); });
+  span.addEventListener('click', () => { removeTile(t.id, locked); });
   return span;
 }
 
-function removeTile(id: string) {
+function renderMeldGroup(meld: LockedGroup, isFlower: boolean) {
+  const group = document.createElement('span');
+  group.className = 'meld-group';
+  const label = document.createElement('span');
+  label.className = 'meld-type-label';
+  label.textContent = meld.type === 'chow' ? 'Chow 吃' : meld.type === 'pung' ? 'Pung 碰' : 'Kong 槓';
+  group.appendChild(label);
+  const tiles = document.createElement('span');
+  tiles.className = 'meld-tiles';
+  meld.tiles.forEach((id) => {
+    const t = findTile(id);
+    if (t) tiles.appendChild(makeRemovableTile(t, isFlower, true));
+  });
+  group.appendChild(tiles);
+  group.addEventListener('click', (e) => {
+    if ((e.target as HTMLElement).closest('.tile')) return;
+    const index = melds.indexOf(meld);
+    if (index !== -1) removeMeldAt(index);
+  });
+  return group;
+}
+
+function removeTile(id: string, locked = false) {
+  if (locked) {
+    const meldIndex = melds.findIndex((m) => m.tiles.includes(id));
+    if (meldIndex !== -1) {
+      removeMeldAt(meldIndex);
+    }
+    return;
+  }
   if (!selected[id]) return;
   selected[id] = (selected[id] || 0) - 1;
   if ((selected[id] || 0) <= 0) delete selected[id];
   updateTileUI();
+}
+
+function updateMeldButtonStates() {
+  ['chow', 'pung', 'kong'].forEach((mode) => {
+    const btn = $(`meld-${mode}`);
+    if (!btn) return;
+    btn.classList.toggle('active', activeMeldMode === mode);
+  });
+  const hint = $('meld-hint');
+  if (!hint) return;
+  if (activeMeldMode === 'chow') {
+    hint.textContent = `Select ${3 - chowSelection.length} more sequential tile(s)`;
+  } else if (activeMeldMode === 'pung') {
+    hint.textContent = 'Select a tile to make a pung of 3';
+  } else if (activeMeldMode === 'kong') {
+    hint.textContent = 'Select a tile to make a kong of 4, or add to an existing pung';
+  } else {
+    hint.textContent = '';
+  }
 }
 
 function renderReferenceHand() {
@@ -163,8 +383,11 @@ function renderReferenceHand() {
   content.innerHTML = '';
 
   const tiles = getSortedTiles(selected);
-  const mainTiles = tiles.filter((t) => !isBonusTile(t.id));
+  const freeSelected = getFreeSelected();
+  const freeTiles = getSortedTiles(freeSelected);
+  const mainFreeTiles = freeTiles.filter((t) => !isBonusTile(t.id));
   const bonusTiles = tiles.filter((t) => isBonusTile(t.id));
+  const mainMelds = melds.filter((m) => !isBonusTile(m.tiles[0]!));
 
   if (tiles.length === 0) {
     const empty = document.createElement('span');
@@ -176,9 +399,15 @@ function renderReferenceHand() {
 
   const tilesContainer = document.createElement('span');
   tilesContainer.className = 'fan-reference-hand-tiles';
-  mainTiles.forEach((t) => {
+
+  mainMelds.forEach((meld) => {
+    tilesContainer.appendChild(renderMeldGroup(meld, false));
+  });
+
+  mainFreeTiles.forEach((t) => {
     tilesContainer.appendChild(makeRemovableTile(t, false));
   });
+
   if (bonusTiles.length) {
     const sep = document.createElement('span');
     sep.className = 'flower-separator';
@@ -204,8 +433,11 @@ function renderMiniHand() {
   content.innerHTML = '';
 
   const tiles = getSortedTiles(selected);
-  const mainTiles = tiles.filter((t) => !isBonusTile(t.id));
+  const freeSelected = getFreeSelected();
+  const freeTiles = getSortedTiles(freeSelected);
+  const mainFreeTiles = freeTiles.filter((t) => !isBonusTile(t.id));
   const bonusTiles = tiles.filter((t) => isBonusTile(t.id));
+  const mainMelds = melds.filter((m) => !isBonusTile(m.tiles[0]!));
 
   if (tiles.length === 0) {
     updateMiniHandVisibility();
@@ -214,9 +446,15 @@ function renderMiniHand() {
 
   const tilesContainer = document.createElement('span');
   tilesContainer.className = 'mini-hand-tiles';
-  mainTiles.forEach((t) => {
+
+  mainMelds.forEach((meld) => {
+    tilesContainer.appendChild(renderMeldGroup(meld, false));
+  });
+
+  mainFreeTiles.forEach((t) => {
     tilesContainer.appendChild(makeRemovableTile(t, false));
   });
+
   if (bonusTiles.length) {
     const sep = document.createElement('span');
     sep.className = 'flower-separator';
@@ -258,16 +496,16 @@ function renderFlowerPoints() {
   container.innerHTML = '';
   const detected = calculateFlowerScenarios(selected, seatWind);
 
-  const hasFlowers = getHandStats(selected).flowers > 0;
-  if (!hasFlowers && seatFlowerOverride !== null) seatFlowerOverride = null;
-  const seatFlowerValue = seatFlowerOverride !== null ? seatFlowerOverride : detected['seat-flower']!.fan;
-
   flowerScenarios.forEach((s) => {
-    if (s.id === 'seat-flower') return;
-    if (detected[s.id]!.applies && flowerIncluded[s.id] === undefined) {
-      flowerIncluded[s.id] = true;
+    const scenario = detected[s.id]!;
+    if (s.id === 'seat-flower') {
+      seatFlowerOverride = scenario.fan;
+    } else {
+      flowerIncluded[s.id] = scenario.applies;
     }
   });
+
+  const seatFlowerValue = detected['seat-flower']!.fan;
 
   function canApply(s: typeof flowerScenarios[0]) {
     if (s.id === 'seat-flower') return seatFlowerValue > 0;
@@ -295,63 +533,11 @@ function renderFlowerPoints() {
     const isSeatFlower = s.id === 'seat-flower';
     const value = isSeatFlower ? seatFlowerValue : scenario.fan;
     const applies = canApply(s);
-    let active = false;
+    const active = applies;
 
-    if (isSeatFlower) {
-      active = seatFlowerValue > 0;
-    } else {
-      active = !!flowerIncluded[s.id] && applies;
-    }
-
-    const item = document.createElement('label');
+    const item = document.createElement('div');
     const isCommon = s.id === 'no-flowers' || s.id === 'seat-flower';
     item.className = 'hand-item' + (isCommon ? ' important' : (active ? ' auto-detected' : ''));
-
-    if (isSeatFlower) {
-      const stepper = document.createElement('div');
-      stepper.className = 'stepper';
-      const minusBtn = document.createElement('button');
-      minusBtn.type = 'button';
-      minusBtn.className = 'stepper-btn';
-      minusBtn.textContent = '−';
-      const valueSpan = document.createElement('span');
-      valueSpan.className = 'stepper-value';
-      valueSpan.textContent = String(value);
-      const plusBtn = document.createElement('button');
-      plusBtn.type = 'button';
-      plusBtn.className = 'stepper-btn';
-      plusBtn.textContent = '+';
-      minusBtn.disabled = value === 0;
-      plusBtn.disabled = !hasFlowers || value >= 2;
-      minusBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        if (value > 0) {
-          seatFlowerOverride = value - 1;
-          renderFlowerPoints();
-        }
-      });
-      plusBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        if (hasFlowers && value < 2) {
-          seatFlowerOverride = value + 1;
-          renderFlowerPoints();
-        }
-      });
-      stepper.appendChild(minusBtn);
-      stepper.appendChild(valueSpan);
-      stepper.appendChild(plusBtn);
-      item.appendChild(stepper);
-    } else {
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.checked = active;
-      checkbox.disabled = !applies;
-      checkbox.addEventListener('change', () => {
-        flowerIncluded[s.id] = checkbox.checked;
-        renderFlowerPoints();
-      });
-      item.appendChild(checkbox);
-    }
 
     const info = document.createElement('div');
     const name = document.createElement('div');
@@ -365,7 +551,7 @@ function renderFlowerPoints() {
 
     const fan = document.createElement('span');
     fan.className = 'hand-fan';
-    fan.textContent = value + ' fan';
+    fan.textContent = fanToPoints(value) + ' points';
 
     item.appendChild(info);
     item.appendChild(fan);
@@ -376,20 +562,27 @@ function renderFlowerPoints() {
   if (summary) {
     let breakdown: string;
     if (handResult.limit) {
-      breakdown = 'Limit hand: ' + handResult.limitName + ' (' + handResult.fan + ' fan)';
-      if (winningFan > 0) breakdown += ' + Winning conditions: ' + winningFan;
-      breakdown += ' = ' + total + ' fan';
+      breakdown = 'Limit hand: ' + handResult.limitName + ' (' + fanToPoints(handResult.fan) + ' points)';
+      if (winningFan > 0) breakdown += ' + Winning conditions: ' + fanToPoints(winningFan);
+      breakdown += ' = ' + fanToPoints(total) + ' points';
     } else {
-      breakdown = 'Hand patterns: ' + handResult.fan;
-      if (windDragonTotal > 0) breakdown += ' + Wind & Dragon: ' + windDragonTotal;
-      if (flowerTotal > 0) breakdown += ' + Flower fan: ' + flowerTotal;
-      if (winningFan > 0) breakdown += ' + Winning conditions: ' + winningFan;
-      breakdown += ' = ' + total + ' fan';
+      breakdown = 'Hand patterns: ' + fanToPoints(handResult.fan);
+      if (windDragonTotal > 0) breakdown += ' + Wind & Dragon: ' + fanToPoints(windDragonTotal);
+      if (flowerTotal > 0) breakdown += ' + Flower: ' + fanToPoints(flowerTotal);
+      if (winningFan > 0) breakdown += ' + Winning conditions: ' + fanToPoints(winningFan);
+      breakdown += ' = ' + fanToPoints(total) + ' points';
     }
     summary.textContent = breakdown;
   }
-  renderCheckedConditions();
+
+  const flowerPanel = container.closest('.tile-panel');
+  if (flowerPanel) {
+    flowerPanel.classList.toggle('collapsed', flowerTotal === 0 || collapsedSections.has('flower-scenarios'));
+  }
+
   highlightFanTable(total);
+  renderReferenceTotal();
+  renderFanBreakdown();
 }
 
 function renderCheckedConditions() {
@@ -414,7 +607,7 @@ function renderCheckedConditions() {
 
   const handResult = getHandPatternFan(handPatternState);
 
-  const detectedPatterns = detectHandPatterns(selected);
+  const detectedPatterns = detectHandPatterns(selected, melds);
   handPatterns.forEach((p) => {
     const active = !!handPatternState[p.id] && (detectedPatterns[p.id] || !p.auto);
     if (!active) return;
@@ -423,7 +616,7 @@ function renderCheckedConditions() {
     } else if (p.limit) {
       return;
     }
-    addTag(p.name + ' (' + p.fan + ')');
+    addTag(p.name + ' (' + fanToPoints(p.fan) + ' points)');
   });
 
   if (!handResult.limit) {
@@ -431,9 +624,9 @@ function renderCheckedConditions() {
     windDragonScenarios.forEach((s) => {
       if (s.stepper) {
         const value = (windDragonState[s.id] as number | undefined) ?? 0;
-        if (value > 0) addTag(s.name + ' (' + value + ')');
+        if (value > 0) addTag(s.name + ' (' + fanToPoints(value) + ' points)');
       } else if (windDragonState[s.id] && windDragonDetected[s.id]!.applies) {
-        addTag(s.name + ' (' + windDragonDetected[s.id]!.fan + ')');
+        addTag(s.name + ' (' + fanToPoints(windDragonDetected[s.id]!.fan) + ' points)');
       }
     });
 
@@ -441,9 +634,9 @@ function renderCheckedConditions() {
     const seatFlowerValue = seatFlowerOverride !== null ? seatFlowerOverride : flowerDetected['seat-flower']!.fan;
     flowerScenarios.forEach((s) => {
       if (s.id === 'seat-flower') {
-        if (seatFlowerValue > 0) addTag(s.name + ' (' + seatFlowerValue + ')');
+        if (seatFlowerValue > 0) addTag(s.name + ' (' + fanToPoints(seatFlowerValue) + ' points)');
       } else if (flowerIncluded[s.id] && flowerDetected[s.id]!.applies) {
-        addTag(s.name + ' (' + flowerDetected[s.id]!.fan + ')');
+        addTag(s.name + ' (' + fanToPoints(flowerDetected[s.id]!.fan) + ' points)');
       }
     });
   }
@@ -457,7 +650,7 @@ function renderCheckedConditions() {
   winningConditions.forEach((c) => {
     if (!winningConditionState[c.id]) return;
     if (c.id === 'concealed' && concealedExcluded) return;
-    addTag(c.name + ' (' + c.fan + ')');
+    addTag(c.name + ' (' + fanToPoints(c.fan) + ' points)');
   });
 
   if (list.children.length === 0) {
@@ -479,6 +672,9 @@ function loadSampleHand(patternId: string) {
   if (!sample) return;
   Object.keys(selected).forEach((k) => { delete selected[k]; });
   Object.assign(selected, sample);
+  melds.length = 0;
+  activeMeldMode = null;
+  chowSelection = [];
   seatFlowerOverride = null;
   dragonOverride = null;
   Object.keys(winningConditionState).forEach((k) => { delete winningConditionState[k]; });
@@ -498,8 +694,8 @@ function renderHandPatterns() {
   if (!container) return;
   container.innerHTML = '';
 
-  const detected = detectHandPatterns(selected);
-  const isComplete = isValidWinningHand(selected);
+  const detected = detectHandPatterns(selected, melds);
+  const isComplete = isValidWinningHand(selected, melds);
   const inferredSelfTriplets = detected['all-triplets'] && !!winningConditionState['concealed'];
 
   if (isComplete) {
@@ -574,20 +770,9 @@ function renderHandPatterns() {
     const applies = detected[p.id] || !p.auto;
     const active = !!handPatternState[p.id] && applies;
 
-    const item = document.createElement('label');
+    const item = document.createElement('div');
     const highlightedIds = ['common-hand', 'all-triplets', 'mixed-one-suit'];
     item.className = 'hand-item' + (highlightedIds.includes(p.id) ? ' important' : '') + (active ? ' auto-detected' : '');
-
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.checked = active;
-    checkbox.disabled = !applies;
-    checkbox.addEventListener('change', () => {
-      handPatternState[p.id] = checkbox.checked;
-      renderHandPatterns();
-      renderWinningConditions();
-      renderFlowerPoints();
-    });
 
     const info = document.createElement('div');
     const name = document.createElement('div');
@@ -601,7 +786,7 @@ function renderHandPatterns() {
 
     const fan = document.createElement('span');
     fan.className = 'hand-fan';
-    fan.textContent = p.fan + ' fan';
+    fan.textContent = fanToPoints(p.fan) + ' points';
 
     const sampleBtn = document.createElement('button');
     sampleBtn.type = 'button';
@@ -614,7 +799,6 @@ function renderHandPatterns() {
       loadSampleHand(p.id);
     });
 
-    item.appendChild(checkbox);
     item.appendChild(info);
     item.appendChild(fan);
     item.appendChild(sampleBtn);
@@ -624,10 +808,16 @@ function renderHandPatterns() {
   const summary = $('hand-pattern-summary');
   if (summary) {
     if (handResult.limit) {
-      summary.textContent = 'Limit hand: ' + handResult.limitName + ' = ' + handResult.fan + ' fan';
+      summary.textContent = 'Limit hand: ' + handResult.limitName + ' = ' + fanToPoints(handResult.fan) + ' points';
     } else {
-      summary.textContent = 'Hand pattern fan total: ' + handResult.fan;
+      summary.textContent = 'Hand pattern points total: ' + fanToPoints(handResult.fan);
     }
+  }
+
+  const handPatternPanel = container.closest('.tile-panel');
+  if (handPatternPanel) {
+    const hasHandPatterns = handResult.fan > 0 || handResult.limit;
+    handPatternPanel.classList.toggle('collapsed', !hasHandPatterns || collapsedSections.has('hand-patterns'));
   }
 
   if (isStrictlyConcealedHand(handPatternState) && winningConditionState['concealed']) {
@@ -643,14 +833,14 @@ function renderPotentialHands() {
   if (!container) return;
   container.innerHTML = '';
 
-  const potential = analyzePotentialHands(selected);
+  const potential = analyzePotentialHands(selected, melds);
 
   if (potential.length === 0) {
     const empty = document.createElement('div');
     empty.className = 'fan-condition-empty';
     empty.textContent = Object.keys(selected).length === 0
       ? 'Select tiles to see potential hands.'
-      : 'No potential fan scoring hands based on existing tiles. You can potentially earn situational fan.';
+      : 'No potential scoring hands based on existing tiles. You can potentially earn situational points.';
     container.appendChild(empty);
     return;
   }
@@ -683,7 +873,7 @@ function renderPotentialHands() {
 
     const fan = document.createElement('span');
     fan.className = 'hand-fan';
-    fan.textContent = p.fan + ' fan';
+    fan.textContent = fanToPoints(p.fan) + ' points';
 
     meta.appendChild(note);
     meta.appendChild(fan);
@@ -707,8 +897,12 @@ function renderWindDragonPoints() {
   const detected = detectWindDragonFaan(selected, seatWind, tableWind);
 
   windDragonScenarios.forEach((s) => {
-    if (!s.stepper && detected[s.id]!.applies && windDragonState[s.id] === undefined) {
-      windDragonState[s.id] = true;
+    const scenario = detected[s.id]!;
+    if (s.stepper) {
+      dragonOverride = scenario.fan;
+      windDragonState[s.id] = scenario.fan;
+    } else {
+      windDragonState[s.id] = scenario.applies;
     }
   });
 
@@ -716,63 +910,9 @@ function renderWindDragonPoints() {
 
   windDragonScenarios.forEach((s) => {
     const scenario = detected[s.id]!;
-
-    const item = document.createElement('label');
-    item.className = 'hand-item' + (s.stepper ? '' : (windDragonState[s.id] ? ' auto-detected' : ''));
-
-    if (s.stepper) {
-      const max = scenario.fan;
-      const autoValue = max;
-      const value = dragonOverride !== null ? Math.min(dragonOverride, max) : autoValue;
-
-      const stepper = document.createElement('div');
-      stepper.className = 'stepper';
-      const minusBtn = document.createElement('button');
-      minusBtn.type = 'button';
-      minusBtn.className = 'stepper-btn';
-      minusBtn.textContent = '−';
-      const valueSpan = document.createElement('span');
-      valueSpan.className = 'stepper-value';
-      valueSpan.textContent = String(value);
-      const plusBtn = document.createElement('button');
-      plusBtn.type = 'button';
-      plusBtn.className = 'stepper-btn';
-      plusBtn.textContent = '+';
-      minusBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        if (value > 0) {
-          dragonOverride = value - 1;
-          renderWindDragonPoints();
-          renderFlowerPoints();
-        }
-      });
-      plusBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        if (value < max) {
-          dragonOverride = value + 1;
-          renderWindDragonPoints();
-          renderFlowerPoints();
-        }
-      });
-      stepper.appendChild(minusBtn);
-      stepper.appendChild(valueSpan);
-      stepper.appendChild(plusBtn);
-      item.appendChild(stepper);
-
-      windDragonState[s.id] = value;
-    } else {
-      const active = !!windDragonState[s.id] && scenario.applies;
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.checked = active;
-      checkbox.disabled = !scenario.applies;
-      checkbox.addEventListener('change', () => {
-        windDragonState[s.id] = checkbox.checked;
-        renderWindDragonPoints();
-        renderFlowerPoints();
-      });
-      item.appendChild(checkbox);
-    }
+    const active = s.stepper ? scenario.fan > 0 : scenario.applies;
+    const item = document.createElement('div');
+    item.className = 'hand-item' + (active ? ' auto-detected' : '');
 
     const info = document.createElement('div');
     const name = document.createElement('div');
@@ -786,7 +926,7 @@ function renderWindDragonPoints() {
 
     const fan = document.createElement('span');
     fan.className = 'hand-fan';
-    fan.textContent = (s.stepper ? (dragonOverride !== null ? dragonOverride : scenario.fan) : scenario.fan) + ' fan';
+    fan.textContent = fanToPoints(scenario.fan) + ' points';
 
     item.appendChild(info);
     item.appendChild(fan);
@@ -794,7 +934,15 @@ function renderWindDragonPoints() {
   });
 
   const summary = $('wind-dragon-summary');
-  if (summary) summary.textContent = 'Wind & Dragon fan total: ' + windDragonTotal;
+  if (summary) summary.textContent = 'Wind & Dragon points total: ' + fanToPoints(windDragonTotal);
+
+  const windDragonPanel = container.closest('.tile-panel');
+  if (windDragonPanel) {
+    windDragonPanel.classList.toggle('collapsed', windDragonTotal === 0 || collapsedSections.has('wind-dragon-scenarios'));
+  }
+
+  renderReferenceTotal();
+  renderFanBreakdown();
 }
 
 // ---------- Winning conditions ----------
@@ -802,8 +950,10 @@ function renderWindDragonPoints() {
 const winningConditionState: Record<string, boolean> = {};
 
 function getWinningConditionFan() {
+  if (!!handPatternState['self-triplets']) return 0;
   let total = 0;
   const concealedExcluded =
+    hasOpenMeld() ||
     isStrictlyConcealedHand(handPatternState) ||
     !!handPatternState['self-triplets'] ||
     !!handPatternState['seven-pairs'] ||
@@ -821,13 +971,14 @@ function renderWinningConditions() {
   const container = $('winning-conditions');
   if (!container) return;
   container.innerHTML = '';
-  const concealedExcluded = isStrictlyConcealedHand(handPatternState);
+  const concealedExcluded = hasOpenMeld() || isStrictlyConcealedHand(handPatternState);
   const stats = getHandStats(selected);
   const hasKong = stats.potentialKongs > 0;
   const kongRequiredIds = ['win-by-kong', 'win-by-double-kong'];
   winningConditions.forEach((c) => {
     const disabledByKong = kongRequiredIds.indexOf(c.id) !== -1 && !hasKong;
-    if (disabledByKong && winningConditionState[c.id]) {
+    const disabledByOpenMeld = c.id === 'concealed' && concealedExcluded;
+    if ((disabledByKong || disabledByOpenMeld) && winningConditionState[c.id]) {
       winningConditionState[c.id] = false;
     }
 
@@ -836,7 +987,7 @@ function renderWinningConditions() {
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.checked = !!winningConditionState[c.id];
-    checkbox.disabled = (c.id === 'concealed' && concealedExcluded) || disabledByKong;
+    checkbox.disabled = disabledByOpenMeld || disabledByKong;
     checkbox.addEventListener('change', () => {
       winningConditionState[c.id] = checkbox.checked;
 
@@ -877,15 +1028,22 @@ function renderWinningConditions() {
     info.appendChild(desc);
     const fan = document.createElement('span');
     fan.className = 'hand-fan';
-    fan.textContent = c.fan + ' fan';
+    fan.textContent = fanToPoints(c.fan) + ' points';
+
     label.appendChild(checkbox);
     label.appendChild(info);
     label.appendChild(fan);
     container.appendChild(label);
   });
+  renderReferenceTotal();
+  renderFanBreakdown();
 }
 
 const POINTS_MAP = [0, 2, 4, 8, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384];
+
+function fanToPoints(fan: number): number {
+  return POINTS_MAP[Math.min(fan, 13)] ?? 0;
+}
 
 function getTotalFan(): number {
   const handResult = getHandPatternFan(handPatternState);
@@ -907,8 +1065,134 @@ function renderReferenceTotal() {
   const el = $('fan-reference-total');
   if (!el) return;
   const totalFan = getTotalFan();
-  const totalPoints = POINTS_MAP[Math.min(totalFan, 13)];
-  el.textContent = `${totalFan} fan / ${totalPoints} pts`;
+  const totalPoints = fanToPoints(totalFan);
+  el.textContent = `${totalPoints} points`;
+}
+
+function renderFanBreakdown() {
+  const container = $('fan-breakdown');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const handResult = getHandPatternFan(handPatternState);
+  const winningFan = getWinningConditionFan();
+  const windDragonTotal = getWindDragonFan(windDragonState, selected, seatWind, tableWind);
+  const flowerDetected = calculateFlowerScenarios(selected, seatWind);
+  const seatFlowerValue = seatFlowerOverride !== null ? seatFlowerOverride : flowerDetected['seat-flower']!.fan;
+  let flowerTotal = seatFlowerValue;
+  flowerScenarios.forEach((s) => {
+    if (s.id === 'seat-flower') return;
+    if (flowerIncluded[s.id] && flowerDetected[s.id]!.applies) flowerTotal += s.fan;
+  });
+
+  const handPoints = fanToPoints(handResult.fan);
+  const winningPoints = fanToPoints(winningFan);
+  const windDragonPoints = fanToPoints(windDragonTotal);
+  const flowerPoints = fanToPoints(flowerTotal);
+  const totalPoints = fanToPoints(getTotalFan());
+
+  function addSection(label: string, points: number, negated: boolean, tags: { text: string; desc: string }[]) {
+    const section = document.createElement('div');
+    section.className = 'fan-breakdown-section' + (negated ? ' negated' : '');
+
+    const header = document.createElement('div');
+    header.className = 'fan-breakdown-header';
+
+    const title = document.createElement('span');
+    title.className = 'fan-breakdown-title';
+    title.textContent = label;
+
+    const value = document.createElement('span');
+    value.className = 'fan-breakdown-value';
+    value.textContent = `${points} points`;
+
+    header.appendChild(title);
+    header.appendChild(value);
+    section.appendChild(header);
+
+    if (tags.length > 0) {
+      const list = document.createElement('div');
+      list.className = 'fan-breakdown-tags';
+      tags.forEach(({ text, desc }) => {
+        const tag = document.createElement('span');
+        tag.className = 'fan-condition-tag';
+        tag.textContent = text;
+        tag.addEventListener('click', () => openConditionModal(text, desc));
+        list.appendChild(tag);
+      });
+      section.appendChild(list);
+    }
+
+    container!.appendChild(section);
+  }
+
+  const detectedPatterns = detectHandPatterns(selected, melds);
+  const handTags: { text: string; desc: string }[] = [];
+  handPatterns.forEach((p) => {
+    const active = !!handPatternState[p.id] && (detectedPatterns[p.id] || !p.auto);
+    if (!active) return;
+    if (handResult.limit) {
+      if (!p.limit || p.name !== handResult.limitName) return;
+    } else if (p.limit) {
+      return;
+    }
+    handTags.push({ text: p.name, desc: p.desc });
+  });
+
+  const concealedExcluded =
+    hasOpenMeld() ||
+    isStrictlyConcealedHand(handPatternState) ||
+    !!handPatternState['self-triplets'] ||
+    !!handPatternState['seven-pairs'] ||
+    !!handPatternState['nine-gates'] ||
+    !!handPatternState['thirteen-orphans'];
+  const winningTags: { text: string; desc: string }[] = [];
+  winningConditions.forEach((c) => {
+    if (!winningConditionState[c.id]) return;
+    if (c.id === 'concealed' && concealedExcluded) return;
+    winningTags.push({ text: c.name, desc: c.desc });
+  });
+
+  const windDragonTags: { text: string; desc: string }[] = [];
+  if (!handResult.limit) {
+    const windDragonDetected = detectWindDragonFaan(selected, seatWind, tableWind);
+    windDragonScenarios.forEach((s) => {
+      if (s.stepper) {
+        const value = (windDragonState[s.id] as number | undefined) ?? 0;
+        if (value > 0) windDragonTags.push({ text: s.name + ' (' + fanToPoints(value) + ' points)', desc: s.desc });
+      } else if (windDragonState[s.id] && windDragonDetected[s.id]!.applies) {
+        windDragonTags.push({ text: s.name + ' (' + fanToPoints(windDragonDetected[s.id]!.fan) + ' points)', desc: s.desc });
+      }
+    });
+  }
+
+  const flowerTags: { text: string; desc: string }[] = [];
+  if (!handResult.limit) {
+    flowerScenarios.forEach((s) => {
+      if (s.id === 'seat-flower') {
+        if (seatFlowerValue > 0) flowerTags.push({ text: s.name + ' (' + fanToPoints(seatFlowerValue) + ' points)', desc: s.desc });
+      } else if (flowerIncluded[s.id] && flowerDetected[s.id]!.applies) {
+        flowerTags.push({ text: s.name + ' (' + fanToPoints(flowerDetected[s.id]!.fan) + ' points)', desc: s.desc });
+      }
+    });
+  }
+
+  addSection('Hand patterns', handPoints, false, handTags);
+  addSection('Winning conditions', winningPoints, false, winningTags);
+  addSection('Wind & Dragon points', windDragonPoints, handResult.limit, windDragonTags);
+  addSection('Flower points', flowerPoints, handResult.limit, flowerTags);
+
+  const totalRow = document.createElement('div');
+  totalRow.className = 'fan-breakdown-total-row';
+  const totalLabel = document.createElement('span');
+  totalLabel.className = 'fan-breakdown-total-label';
+  totalLabel.textContent = 'Total';
+  const totalValue = document.createElement('span');
+  totalValue.className = 'fan-breakdown-total';
+  totalValue.textContent = `${totalPoints} points`;
+  totalRow.appendChild(totalLabel);
+  totalRow.appendChild(totalValue);
+  container.appendChild(totalRow);
 }
 
 async function copyHandToClipboard() {
@@ -923,28 +1207,28 @@ async function copyHandToClipboard() {
 
   const conditions: string[] = [];
   handPatterns.forEach((p) => {
-    if (handPatternState[p.id]) conditions.push(p.name + ' (' + p.fan + ')');
+    if (handPatternState[p.id]) conditions.push(p.name + ' (' + fanToPoints(p.fan) + ' points)');
   });
   const windDragonDetected = detectWindDragonFaan(selected, seatWind, tableWind);
   windDragonScenarios.forEach((s) => {
     if (s.stepper) {
       const value = (windDragonState[s.id] as number | undefined) ?? 0;
-      if (value > 0) conditions.push(s.name + ' (' + value + ')');
+      if (value > 0) conditions.push(s.name + ' (' + fanToPoints(value) + ' points)');
     } else if (windDragonState[s.id] && windDragonDetected[s.id]!.applies) {
-      conditions.push(s.name + ' (' + windDragonDetected[s.id]!.fan + ')');
+      conditions.push(s.name + ' (' + fanToPoints(windDragonDetected[s.id]!.fan) + ' points)');
     }
   });
   const flowerDetected = calculateFlowerScenarios(selected, seatWind);
   flowerScenarios.forEach((s) => {
     if (s.id === 'seat-flower') {
       const value = seatFlowerOverride !== null ? seatFlowerOverride : flowerDetected['seat-flower']!.fan;
-      if (value > 0) conditions.push(s.name + ' (' + value + ')');
+      if (value > 0) conditions.push(s.name + ' (' + fanToPoints(value) + ' points)');
     } else if (flowerIncluded[s.id] && flowerDetected[s.id]!.applies) {
-      conditions.push(s.name + ' (' + flowerDetected[s.id]!.fan + ')');
+      conditions.push(s.name + ' (' + fanToPoints(flowerDetected[s.id]!.fan) + ' points)');
     }
   });
   winningConditions.forEach((c) => {
-    if (winningConditionState[c.id]) conditions.push(c.name + ' (' + c.fan + ')');
+    if (winningConditionState[c.id]) conditions.push(c.name + ' (' + fanToPoints(c.fan) + ' points)');
   });
 
   if (conditions.length > 0) {
@@ -952,8 +1236,8 @@ async function copyHandToClipboard() {
   }
 
   const totalFan = getTotalFan();
-  const totalPoints = POINTS_MAP[Math.min(totalFan, 13)];
-  lines.push(`Total: ${totalFan} fan (${totalPoints} points)`);
+  const totalPoints = fanToPoints(totalFan);
+  lines.push(`Total: ${totalPoints} points`);
 
   const text = lines.join('\n');
   try {
@@ -966,6 +1250,9 @@ async function copyHandToClipboard() {
 
 function clearHand() {
   Object.keys(selected).forEach((k) => { delete selected[k]; });
+  melds.length = 0;
+  activeMeldMode = null;
+  chowSelection = [];
   seatFlowerOverride = null;
   dragonOverride = null;
   Object.keys(winningConditionState).forEach((k) => { delete winningConditionState[k]; });
@@ -981,6 +1268,21 @@ function clearHand() {
 ['clear-tiles', 'clear-hand-top'].forEach((id) => {
   const btn = $(id);
   if (btn) btn.addEventListener('click', clearHand);
+});
+
+function setMeldMode(mode: 'chow' | 'pung' | 'kong' | null) {
+  activeMeldMode = activeMeldMode === mode ? null : mode;
+  chowSelection = [];
+  updateTileUI();
+}
+
+['chow', 'pung', 'kong'].forEach((mode) => {
+  const btn = $(`meld-${mode}`);
+  if (btn) {
+    btn.addEventListener('click', () => {
+      setMeldMode(mode as 'chow' | 'pung' | 'kong');
+    });
+  }
 });
 
 const copyHand = $('copy-hand');
@@ -1042,6 +1344,26 @@ if (potentialModal) {
   });
 }
 
+const conditionModal = $('condition-modal');
+const conditionModalTitle = $('condition-modal-title');
+const conditionModalDesc = $('condition-modal-desc');
+const conditionModalClose = $('condition-modal-close');
+
+function openConditionModal(title: string, desc: string) {
+  if (conditionModalTitle) conditionModalTitle.textContent = title;
+  if (conditionModalDesc) conditionModalDesc.textContent = desc;
+  if (conditionModal) conditionModal.style.display = 'flex';
+}
+function closeConditionModal() {
+  if (conditionModal) conditionModal.style.display = 'none';
+}
+if (conditionModalClose) conditionModalClose.addEventListener('click', closeConditionModal);
+if (conditionModal) {
+  conditionModal.addEventListener('click', (e) => {
+    if (e.target === conditionModal) closeConditionModal();
+  });
+}
+
 // Mini hand visibility tracks the hidden state of the main fan reference panel.
 window.addEventListener('fanreferencevisibility', () => updateMiniHandVisibility());
 
@@ -1053,3 +1375,18 @@ renderTileSelector();
 renderWinningConditions();
 renderHandPatterns();
 renderWindDragonPoints();
+
+document.querySelectorAll('.tile-panel.collapsible .panel-title').forEach((title) => {
+  const panel = title.closest('.tile-panel');
+  const list = panel?.querySelector('.hand-list');
+  const id = list?.id;
+  if (!id) return;
+  title.addEventListener('click', () => {
+    if (collapsedSections.has(id)) {
+      collapsedSections.delete(id);
+    } else {
+      collapsedSections.add(id);
+    }
+    panel.classList.toggle('collapsed');
+  });
+});

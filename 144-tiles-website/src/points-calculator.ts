@@ -1,6 +1,7 @@
 export interface TileDef {
   id: string;
   c: string;
+  img: string;
   max: number;
 }
 
@@ -9,82 +10,108 @@ export interface SuitGroup {
   tiles: TileDef[];
 }
 
+function tileImagePath(id: string): string {
+  const suit = id.charAt(0);
+  const rank = id.charAt(1);
+  const base = '/svg/mahjong/';
+  if (suit === 'm') return `${base}MJ${rank}wan.svg`;
+  if (suit === 's') return `${base}MJ${rank}tiao.svg`;
+  if (suit === 'p') return `${base}MJ${rank}bing.svg`;
+  if (suit === 'w') {
+    const windName = { e: 'East', s: 'South', w: 'West', n: 'North' }[rank];
+    return `${base}MJ${windName}wind.svg`;
+  }
+  if (suit === 'd') {
+    const dragonName = { r: 'Red', g: 'Green', w: 'White' }[rank];
+    return `${base}MJ${dragonName}dragon.svg`;
+  }
+  if (suit === 'f') {
+    const flowerName = { '1': 'mei', '2': 'lan', '3': 'ju', '4': 'zhu' }[rank];
+    return `${base}MJ${flowerName}.svg`;
+  }
+  if (suit === 'n') {
+    const seasonName = { '1': 'spring', '2': 'summer', '3': 'autumn', '4': 'winter' }[rank];
+    return `${base}MJ${seasonName}.svg`;
+  }
+  return '';
+}
+
 export const suits: SuitGroup[] = [
   {
     label: 'Characters',
     tiles: [
-      { id: 'm1', c: '🀇', max: 4 },
-      { id: 'm2', c: '🀈', max: 4 },
-      { id: 'm3', c: '🀉', max: 4 },
-      { id: 'm4', c: '🀊', max: 4 },
-      { id: 'm5', c: '🀋', max: 4 },
-      { id: 'm6', c: '🀌', max: 4 },
-      { id: 'm7', c: '🀍', max: 4 },
-      { id: 'm8', c: '🀎', max: 4 },
-      { id: 'm9', c: '🀏', max: 4 },
+      { id: 'm1', c: '🀇', img: tileImagePath('m1'), max: 4 },
+      { id: 'm2', c: '🀈', img: tileImagePath('m2'), max: 4 },
+      { id: 'm3', c: '🀉', img: tileImagePath('m3'), max: 4 },
+      { id: 'm4', c: '🀊', img: tileImagePath('m4'), max: 4 },
+      { id: 'm5', c: '🀋', img: tileImagePath('m5'), max: 4 },
+      { id: 'm6', c: '🀌', img: tileImagePath('m6'), max: 4 },
+      { id: 'm7', c: '🀍', img: tileImagePath('m7'), max: 4 },
+      { id: 'm8', c: '🀎', img: tileImagePath('m8'), max: 4 },
+      { id: 'm9', c: '🀏', img: tileImagePath('m9'), max: 4 },
     ],
   },
   {
     label: 'Bamboo',
     tiles: [
-      { id: 's1', c: '🀐', max: 4 },
-      { id: 's2', c: '🀑', max: 4 },
-      { id: 's3', c: '🀒', max: 4 },
-      { id: 's4', c: '🀓', max: 4 },
-      { id: 's5', c: '🀔', max: 4 },
-      { id: 's6', c: '🀕', max: 4 },
-      { id: 's7', c: '🀖', max: 4 },
-      { id: 's8', c: '🀗', max: 4 },
-      { id: 's9', c: '🀘', max: 4 },
+      { id: 's1', c: '🀐', img: tileImagePath('s1'), max: 4 },
+      { id: 's2', c: '🀑', img: tileImagePath('s2'), max: 4 },
+      { id: 's3', c: '🀒', img: tileImagePath('s3'), max: 4 },
+      { id: 's4', c: '🀓', img: tileImagePath('s4'), max: 4 },
+      { id: 's5', c: '🀔', img: tileImagePath('s5'), max: 4 },
+      { id: 's6', c: '🀕', img: tileImagePath('s6'), max: 4 },
+      { id: 's7', c: '🀖', img: tileImagePath('s7'), max: 4 },
+      { id: 's8', c: '🀗', img: tileImagePath('s8'), max: 4 },
+      { id: 's9', c: '🀘', img: tileImagePath('s9'), max: 4 },
     ],
   },
   {
     label: 'Dots',
     tiles: [
-      { id: 'p1', c: '🀙', max: 4 },
-      { id: 'p2', c: '🀚', max: 4 },
-      { id: 'p3', c: '🀛', max: 4 },
-      { id: 'p4', c: '🀜', max: 4 },
-      { id: 'p5', c: '🀝', max: 4 },
-      { id: 'p6', c: '🀞', max: 4 },
-      { id: 'p7', c: '🀟', max: 4 },
-      { id: 'p8', c: '🀠', max: 4 },
-      { id: 'p9', c: '🀡', max: 4 },
+      { id: 'p1', c: '🀙', img: tileImagePath('p1'), max: 4 },
+      { id: 'p2', c: '🀚', img: tileImagePath('p2'), max: 4 },
+      { id: 'p3', c: '🀛', img: tileImagePath('p3'), max: 4 },
+      { id: 'p4', c: '🀜', img: tileImagePath('p4'), max: 4 },
+      { id: 'p5', c: '🀝', img: tileImagePath('p5'), max: 4 },
+      { id: 'p6', c: '🀞', img: tileImagePath('p6'), max: 4 },
+      { id: 'p7', c: '🀟', img: tileImagePath('p7'), max: 4 },
+      { id: 'p8', c: '🀠', img: tileImagePath('p8'), max: 4 },
+      { id: 'p9', c: '🀡', img: tileImagePath('p9'), max: 4 },
     ],
   },
   {
     label: 'Winds',
     tiles: [
-      { id: 'we', c: '🀀', max: 4 },
-      { id: 'ws', c: '🀁', max: 4 },
-      { id: 'ww', c: '🀂', max: 4 },
-      { id: 'wn', c: '🀃', max: 4 },
+      { id: 'we', c: '🀀', img: tileImagePath('we'), max: 4 },
+      { id: 'ws', c: '🀁', img: tileImagePath('ws'), max: 4 },
+      { id: 'ww', c: '🀂', img: tileImagePath('ww'), max: 4 },
+      { id: 'wn', c: '🀃', img: tileImagePath('wn'), max: 4 },
     ],
   },
   {
     label: 'Dragons',
     tiles: [
-      { id: 'dr', c: '🀄\uFE0E', max: 4 },
-      { id: 'dg', c: '🀅', max: 4 },
-      { id: 'dw', c: '🀆', max: 4 },
+      { id: 'dr', c: '🀄\uFE0E', img: tileImagePath('dr'), max: 4 },
+      { id: 'dg', c: '🀅', img: tileImagePath('dg'), max: 4 },
+      { id: 'dw', c: '🀆', img: tileImagePath('dw'), max: 4 },
     ],
   },
   {
     label: 'Flowers',
     tiles: [
-      { id: 'f1', c: '🀢', max: 1 },
-      { id: 'f2', c: '🀣', max: 1 },
-      { id: 'f3', c: '🀤', max: 1 },
-      { id: 'f4', c: '🀥', max: 1 },
+      { id: 'f1', c: '🀢', img: tileImagePath('f1'), max: 1 },
+      { id: 'f2', c: '🀣', img: tileImagePath('f2'), max: 1 },
+      { id: 'f3', c: '🀤', img: tileImagePath('f3'), max: 1 },
+      { id: 'f4', c: '🀥', img: tileImagePath('f4'), max: 1 },
     ],
   },
   {
     label: 'Seasons',
     tiles: [
-      { id: 'n1', c: '🀦', max: 1 },
-      { id: 'n2', c: '🀧', max: 1 },
-      { id: 'n3', c: '🀨', max: 1 },
-      { id: 'n4', c: '🀩', max: 1 },
+      { id: 'n1', c: '🀦', img: tileImagePath('n1'), max: 1 },
+      { id: 'n2', c: '🀧', img: tileImagePath('n2'), max: 1 },
+      { id: 'n3', c: '🀨', img: tileImagePath('n3'), max: 1 },
+      { id: 'n4', c: '🀩', img: tileImagePath('n4'), max: 1 },
     ],
   },
 ];
@@ -152,6 +179,106 @@ export function getSortedTiles(selected: Record<string, number>): TileDef[] {
 
 export interface Decomposition {
   groups: { type: 'kong' | 'triplet' | 'sequence'; tile: string }[];
+}
+
+export interface LockedGroup {
+  type: 'chow' | 'pung' | 'kong';
+  tiles: string[];
+}
+
+export function findDecompositionsWithLockedGroups(
+  freeIds: string[],
+  lockedGroups: LockedGroup[]
+): Decomposition[] {
+  const results: Decomposition[] = [];
+  const groupsNeeded = 4 - lockedGroups.length;
+  if (groupsNeeded < 0) return results;
+
+  const counts = getCounts(freeIds);
+  const ids = Object.keys(counts);
+
+  function remove(id: string, n: number) {
+    counts[id] = (counts[id] || 0) - n;
+    if (counts[id] === 0) delete counts[id];
+  }
+  function add(id: string, n: number) {
+    counts[id] = (counts[id] || 0) + n;
+  }
+
+  function smallestId(): string | null {
+    let min: string | null = null;
+    ids.forEach((id) => {
+      const c = counts[id] || 0;
+      if (c > 0 && (min === null || id < min)) min = id;
+    });
+    return min;
+  }
+
+  function tryGroups(groupsLeft: number, kongsLeft: number, currentGroups: Decomposition['groups']) {
+    if (groupsLeft === 0) {
+      if (Object.keys(counts).length === 0) {
+        const locked = lockedGroups.map((g) => {
+          const tile = g.tiles[0]!;
+          const mappedType = g.type === 'chow' ? 'sequence' : g.type === 'kong' ? 'kong' : 'triplet';
+          return { type: mappedType as 'sequence' | 'triplet' | 'kong', tile };
+        });
+        results.push({ groups: [...locked, ...currentGroups] });
+      }
+      return;
+    }
+    const t = smallestId();
+    if (!t) return;
+
+    const countT = counts[t] || 0;
+
+    if (kongsLeft > 0 && countT >= 4) {
+      remove(t, 4);
+      currentGroups.push({ type: 'kong', tile: t });
+      tryGroups(groupsLeft - 1, kongsLeft - 1, currentGroups);
+      currentGroups.pop();
+      add(t, 4);
+    }
+
+    if (countT >= 3) {
+      remove(t, 3);
+      currentGroups.push({ type: 'triplet', tile: t });
+      tryGroups(groupsLeft - 1, kongsLeft, currentGroups);
+      currentGroups.pop();
+      add(t, 3);
+    }
+
+    if (isSuited(t)) {
+      const p = parseTile(t);
+      if (p.rank <= 7) {
+        const t2 = nextId(t)!;
+        const t3 = nextId(t2)!;
+        if ((counts[t2] || 0) > 0 && (counts[t3] || 0) > 0) {
+          remove(t, 1);
+          remove(t2, 1);
+          remove(t3, 1);
+          currentGroups.push({ type: 'sequence', tile: t });
+          tryGroups(groupsLeft - 1, kongsLeft, currentGroups);
+          currentGroups.pop();
+          add(t, 1);
+          add(t2, 1);
+          add(t3, 1);
+        }
+      }
+    }
+  }
+
+  const freeKongsAllowed = freeIds.length - 3 * groupsNeeded - 2;
+  if (freeKongsAllowed < 0) return results;
+
+  ids.forEach((id) => {
+    if ((counts[id] || 0) >= 2) {
+      remove(id, 2);
+      tryGroups(groupsNeeded, freeKongsAllowed, []);
+      add(id, 2);
+    }
+  });
+
+  return results;
 }
 
 export function findDecompositions(nonFlowerIds: string[]): Decomposition[] {
@@ -308,36 +435,64 @@ function isThirteenOrphans(counts: Record<string, number>): boolean {
   return allOrphansPresent && hasDuplicate && onlyOrphans && noExcess;
 }
 
-export function isValidWinningHand(selected: Record<string, number>): boolean {
+export function isValidWinningHand(
+  selected: Record<string, number>,
+  lockedGroups: LockedGroup[] = []
+): boolean {
   const mainIds = getMainIds(selected);
   if (mainIds.length < 14) return false;
   const counts = getCounts(mainIds);
   const keys = Object.keys(counts);
-  if (mainIds.length === 14 && keys.length === 7 && keys.every((id) => counts[id] === 2)) return true;
-  if (mainIds.length === 14 && isThirteenOrphans(counts)) return true;
-  return findDecompositions(mainIds).length > 0;
+
+  if (lockedGroups.length === 0) {
+    if (mainIds.length === 14 && keys.length === 7 && keys.every((id) => counts[id] === 2)) return true;
+    if (mainIds.length === 14 && isThirteenOrphans(counts)) return true;
+    return findDecompositions(mainIds).length > 0;
+  }
+
+  const lockedTiles = lockedGroups.flatMap((g) => g.tiles);
+  const freeIds = mainIds.slice().sort();
+  lockedTiles.forEach((id) => {
+    const idx = freeIds.indexOf(id);
+    if (idx !== -1) freeIds.splice(idx, 1);
+  });
+  return findDecompositionsWithLockedGroups(freeIds, lockedGroups).length > 0;
 }
 
-export function detectHandPatterns(selected: Record<string, number>): Record<string, boolean> {
+export function detectHandPatterns(
+  selected: Record<string, number>,
+  lockedGroups: LockedGroup[] = []
+): Record<string, boolean> {
   const detected: Record<string, boolean> = {};
   handPatterns.forEach((p) => {
     detected[p.id] = false;
   });
 
   const mainIds = getMainIds(selected);
-  if (mainIds.length === 0 || !isValidWinningHand(selected)) return detected;
+  if (mainIds.length === 0 || !isValidWinningHand(selected, lockedGroups)) return detected;
 
   const counts = getCounts(mainIds);
-  const decomps = findDecompositions(mainIds);
 
-  // Seven pairs
-  if (mainIds.length === 14 && Object.keys(counts).length === 7 && Object.keys(counts).every((id) => counts[id] === 2)) {
-    detected['seven-pairs'] = true;
-  }
+  const lockedTiles = lockedGroups.flatMap((g) => g.tiles);
+  const freeIds = mainIds.slice().sort();
+  lockedTiles.forEach((id) => {
+    const idx = freeIds.indexOf(id);
+    if (idx !== -1) freeIds.splice(idx, 1);
+  });
+  const decomps =
+    lockedGroups.length === 0
+      ? findDecompositions(mainIds)
+      : findDecompositionsWithLockedGroups(freeIds, lockedGroups);
 
-  // Thirteen Orphans
-  if (mainIds.length === 14 && isThirteenOrphans(counts)) {
-    detected['thirteen-orphans'] = true;
+  // Seven pairs and Thirteen Orphans cannot coexist with declared melds.
+  if (lockedGroups.length === 0) {
+    if (mainIds.length === 14 && Object.keys(counts).length === 7 && Object.keys(counts).every((id) => counts[id] === 2)) {
+      detected['seven-pairs'] = true;
+    }
+
+    if (mainIds.length === 14 && isThirteenOrphans(counts)) {
+      detected['thirteen-orphans'] = true;
+    }
   }
 
   // Suit/honor composition
@@ -412,7 +567,7 @@ export function detectHandPatterns(selected: Record<string, number>): Record<str
   if (windTrips.length === 3 && windPairs.length === 1) detected['small-winds'] = true;
 
   // Nine gates: one suit 1112345678999 plus one extra tile of the same suit
-  if (!hasHonor && suitKeys.length === 1 && mainIds.length === 14) {
+  if (lockedGroups.length === 0 && !hasHonor && suitKeys.length === 1 && mainIds.length === 14) {
     const suit = suitKeys[0]!;
     let isNineGates = true;
     let higherCountRanks = 0;
@@ -430,7 +585,7 @@ export function detectHandPatterns(selected: Record<string, number>): Record<str
   }
 
   // Chicken hand: valid winning hand with no other scoring pattern
-  if (isValidWinningHand(selected) && !handPatterns.some((p) => p.id !== 'chicken-hand' && detected[p.id])) {
+  if (isValidWinningHand(selected, lockedGroups) && !handPatterns.some((p) => p.id !== 'chicken-hand' && detected[p.id])) {
     detected['chicken-hand'] = true;
   }
 
@@ -505,15 +660,20 @@ function suitLabel(suit: string): string {
   return found ? found.label : suit;
 }
 
-export function analyzePotentialHands(selected: Record<string, number>): PotentialHand[] {
+export function analyzePotentialHands(
+  selected: Record<string, number>,
+  lockedGroups: LockedGroup[] = []
+): PotentialHand[] {
   const mainIds = getMainIds(selected);
   const total = mainIds.length;
   if (total === 0) return [];
 
   const counts = getCounts(mainIds);
-  const detected = detectHandPatterns(selected);
+  const detected = detectHandPatterns(selected, lockedGroups);
   const stats = getHandStats(selected);
   const freeTiles = stats.max - stats.total;
+  const hasLockedChow = lockedGroups.some((g) => g.type === 'chow');
+  const hasLockedMeld = lockedGroups.length > 0;
 
   const suitCounts: Record<string, number> = {};
   let honorCount = 0;
@@ -586,6 +746,7 @@ export function analyzePotentialHands(selected: Record<string, number>): Potenti
         break;
       }
       case 'all-triplets': {
+        if (hasLockedChow) break;
         const distinctTiles = Object.keys(counts).length;
         if (distinctTiles <= 5) {
           possible = true;
@@ -632,6 +793,7 @@ export function analyzePotentialHands(selected: Record<string, number>): Potenti
         break;
       }
       case 'seven-pairs': {
+        if (hasLockedMeld) break;
         const invalid = Object.values(counts).some((c) => c > 4);
         const pairCount = Object.values(counts).reduce((sum, c) => sum + Math.floor(c / 2), 0);
         const singleCount = Object.values(counts).reduce((sum, c) => sum + (c % 2), 0);
@@ -791,7 +953,7 @@ export interface WindDragonScenario {
 export const windDragonScenarios: WindDragonScenario[] = [
   { id: 'seat-wind', name: 'Seat Wind (門風)', fan: 1, desc: 'A meld of your seat wind.' },
   { id: 'prevailing-wind', name: 'Prevailing Wind (圈風)', fan: 1, desc: 'A meld of the prevailing (table) wind.' },
-  { id: 'dragons', name: 'Dragons (三元)', fan: 0, desc: '1 fan per dragon triplet/kong (0–3).', stepper: true, max: 3 },
+  { id: 'dragons', name: 'Dragons (三元)', fan: 0, desc: '0/2/4/8 points per dragon triplet/kong (0–3).', stepper: true, max: 3 },
 ];
 
 export function detectWindDragonFaan(
@@ -849,8 +1011,8 @@ export const winningConditions: WinningCondition[] = [
   { id: 'concealed', name: 'Concealed Hand (門前清)', desc: 'No open melds (chows or pungs claimed from others).', fan: 1, highlight: true },
   { id: 'robbing-kong', name: 'Robbing the Kong (槓上開花)', desc: 'Won by claiming the tile used to promote a kong', fan: 1, highlight: false },
   { id: 'last-tile', name: 'Last Catch (海底撈月)', desc: 'Won on the final drawable tile from the wall or final discard', fan: 1, highlight: false },
-  { id: 'win-by-kong', name: 'Win by Kong (槓上開花)', desc: 'The winning tile is from a replacement tile due to a Kong or a Bonus Tile. Implies self-pick (which adds 1 additional faan).', fan: 1, highlight: false },
-  { id: 'win-by-double-kong', name: 'Win by Double-Kong (槓上槓)', desc: 'Similar to Win by Kong, except that the tile used to make the Kong was itself an extra tile from declaring a Kong. Implies self-pick (which adds 1 additional faan).', fan: 8, highlight: false },
+  { id: 'win-by-kong', name: 'Win by Kong (槓上開花)', desc: 'The winning tile is from a replacement tile due to a Kong or a Bonus Tile. Implies self-pick (which adds 2 additional points).', fan: 1, highlight: false },
+  { id: 'win-by-double-kong', name: 'Win by Double-Kong (槓上槓)', desc: 'Similar to Win by Kong, except that the tile used to make the Kong was itself an extra tile from declaring a Kong. Implies self-pick (which adds 2 additional points).', fan: 8, highlight: false },
   { id: 'heavenly-hand', name: 'Heavenly Hand (天糊)', desc: 'East wins with the initial hand', fan: 13, highlight: false },
   { id: 'earthly-hand', name: 'Earthly Hand (地糊)', desc: "Non-East player wins on East's first discard", fan: 13, highlight: false },
 ];
