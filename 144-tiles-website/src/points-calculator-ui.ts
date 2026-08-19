@@ -502,15 +502,20 @@ let seatFlowerOverride: number | null = null; // null = auto-detect, 0-2 = manua
 function highlightFanTable(fan: number) {
   document.querySelectorAll('#fan-table td').forEach((cell) => { cell.classList.remove('current'); });
   if (fan < 0) return;
-  const row = document.querySelector('#fan-table tr:first-child');
-  if (!row) return;
-  let cell: Element | null;
+  const fanRow = document.querySelector('#fan-table tr:first-child');
+  const pointsRow = document.querySelector('#fan-table tr:nth-child(2)');
+  if (!fanRow || !pointsRow) return;
+  let fanCell: Element | null;
+  let pointsCell: Element | null;
   if (fan <= 12) {
-    cell = row.querySelector('td:nth-child(' + (fan + 2) + ')');
+    fanCell = fanRow.querySelector('td:nth-child(' + (fan + 2) + ')');
+    pointsCell = pointsRow.querySelector('td:nth-child(' + (fan + 2) + ')');
   } else {
-    cell = row.querySelector('td:last-child');
+    fanCell = fanRow.querySelector('td:last-child');
+    pointsCell = pointsRow.querySelector('td:last-child');
   }
-  if (cell) cell.classList.add('current');
+  if (fanCell) fanCell.classList.add('current');
+  if (pointsCell) pointsCell.classList.add('current');
 }
 
 function renderFlowerPoints() {
