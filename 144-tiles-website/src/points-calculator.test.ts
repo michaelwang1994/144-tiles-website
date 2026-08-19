@@ -9,6 +9,8 @@ import {
   detectWindDragonFaan,
   getWindDragonFan,
   isStrictlyConcealedHand,
+  findDecompositionsWithLockedGroups,
+  type LockedGroup,
 } from './points-calculator';
 
 function selectedFromIds(ids: string[]): Record<string, number> {
@@ -396,5 +398,148 @@ describe('isStrictlyConcealedHand', () => {
 
   it('returns false for other hands', () => {
     expect(isStrictlyConcealedHand({ 'common-hand': true, 'all-triplets': true })).toBe(false);
+  });
+});
+
+describe('findDecompositionsWithLockedGroups', () => {
+  it('decomposes a hand with locked chows', () => {
+    const freeIds = ids(
+      repeat('m4', 1), repeat('m5', 1), repeat('m6', 1),
+      repeat('s2', 1), repeat('s3', 1), repeat('s4', 1),
+      repeat('p6', 1), repeat('p7', 1), repeat('p8', 1),
+      repeat('we', 2)
+    );
+    const locked: LockedGroup[] = [
+      { type: 'chow', tiles: ids(repeat('m1', 1), repeat('m2', 1), repeat('m3', 1)) },
+    ];
+    const decomps = findDecompositionsWithLockedGroups(freeIds, locked);
+    expect(decomps.length).toBeGreaterThan(0);
+  });
+
+  it('decomposes a hand with locked pungs', () => {
+    const freeIds = ids(
+      repeat('m4', 1), repeat('m5', 1), repeat('m6', 1),
+      repeat('s2', 1), repeat('s3', 1), repeat('s4', 1),
+      repeat('p6', 1), repeat('p7', 1), repeat('p8', 1),
+      repeat('we', 2)
+    );
+    const locked: LockedGroup[] = [
+      { type: 'pung', tiles: ids(repeat('m1', 3)) },
+    ];
+    const decomps = findDecompositionsWithLockedGroups(freeIds, locked);
+    expect(decomps.length).toBeGreaterThan(0);
+  });
+
+  it('decomposes a hand with locked kongs', () => {
+    const freeIds = ids(
+      repeat('m5', 1), repeat('m6', 1), repeat('m7', 1),
+      repeat('s2', 1), repeat('s3', 1), repeat('s4', 1),
+      repeat('p6', 1), repeat('p7', 1), repeat('p8', 1),
+      repeat('we', 2)
+    );
+    const locked: LockedGroup[] = [
+      { type: 'kong', tiles: ids(repeat('m1', 4)) },
+    ];
+    const decomps = findDecompositionsWithLockedGroups(freeIds, locked);
+    expect(decomps.length).toBeGreaterThan(0);
+  });
+
+  it('returns empty when locked groups cannot form a valid hand', () => {
+    const freeIds = ids(repeat('m1', 2));
+    const locked: LockedGroup[] = [
+      { type: 'pung', tiles: ids(repeat('m2', 3)) },
+    ];
+    const decomps = findDecompositionsWithLockedGroups(freeIds, locked);
+    expect(decomps.length).toBe(0);
+  });
+});
+
+describe('detectHandPatterns with locked groups', () => {
+  it('detects Common Hand with a locked chow', () => {
+    const selected = selectedFromIds(
+      ids(
+        repeat('m1', 1), repeat('m2', 1), repeat('m3', 1),
+        repeat('m4', 1), repeat('m5', 1), repeat('m6', 1),
+        repeat('s2', 1), repeat('s3', 1), repeat('s4', 1),
+        repeat('p6', 1), repeat('p7', 1), repeat('p8', 1),
+        repeat('we', 2)
+      )
+    );
+    const locked: LockedGroup[] = [
+      { type: 'chow', tiles: ids(repeat('m1', 1), repeat('m2', 1), repeat('m3', 1)) },
+    ];
+    const detected = detectHandPatterns(selected, locked);
+    expect(detected['common-hand']).toBe(true);
+  });
+
+  it('does not detect Common Hand when a locked pung is present', () => {
+    const selected = selectedFromIds(
+      ids(
+        repeat('m1', 3),
+        repeat('m4', 1), repeat('m5', 1), repeat('m6', 1),
+        repeat('s2', 1), repeat('s3', 1), repeat('s4', 1),
+        repeat('p6', 1), repeat('p7', 1), repeat('p8', 1),
+        repeat('we', 2)
+      )
+    );
+    const locked: LockedGroup[] = [
+      { type: 'pung', tiles: ids(repeat('m1', 3)) },
+    ];
+    const detected = detectHandPatterns(selected, locked);
+    expect(detected['common-hand']).toBe(false);
+  });
+
+  it('detects All in Triplets with locked pungs', () => {
+    const selected = selectedFromIds(
+      ids(
+        repeat('m1', 3),
+        repeat('m5', 3),
+        repeat('s9', 3),
+        repeat('we', 3),
+        repeat('dr', 2)
+      )
+    );
+    const locked: LockedGroup[] = [
+      { type: 'pung', tiles: ids(repeat('m1', 3)) },
+      { type: 'pung', tiles: ids(repeat('m5', 3)) },
+    ];
+    const detected = detectHandPatterns(selected, locked);
+    expect(detected['all-triplets']).toBe(true);
+  });
+
+  it('does not detect All in Triplets when a locked chow is present', () => {
+    const selected = selectedFromIds(
+      ids(
+        repeat('m1', 1), repeat('m2', 1), repeat('m3', 1),
+        repeat('m5', 3),
+        repeat('s9', 3),
+        repeat('we', 3),
+        repeat('dr', 2)
+      )
+    );
+    const locked: LockedGroup[] = [
+      { type: 'chow', tiles: ids(repeat('m1', 1), repeat('m2', 1), repeat('m3', 1)) },
+    ];
+    const detected = detectHandPatterns(selected, locked);
+    expect(detected['all-triplets']).toBe(false);
+  });
+
+  it('does not detect Seven Pairs when locked groups exist', () => {
+    const selected = selectedFromIds(
+      ids(
+        repeat('m1', 2),
+        repeat('m5', 2),
+        repeat('s9', 2),
+        repeat('p3', 2),
+        repeat('we', 2),
+        repeat('dr', 2),
+        repeat('dg', 2)
+      )
+    );
+    const locked: LockedGroup[] = [
+      { type: 'pung', tiles: ids(repeat('m1', 3)) },
+    ];
+    const detected = detectHandPatterns(selected, locked);
+    expect(detected['seven-pairs']).toBe(false);
   });
 });
