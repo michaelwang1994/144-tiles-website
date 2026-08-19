@@ -982,12 +982,13 @@ function renderWinningConditions() {
       winningConditionState[c.id] = false;
     }
 
+    const isDisabled = disabledByOpenMeld || disabledByKong;
     const label = document.createElement('label');
-    label.className = 'win-condition' + (c.highlight ? ' highlight' : '');
+    label.className = 'win-condition' + (c.highlight ? ' highlight' : '') + (isDisabled ? ' disabled' : '');
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.checked = !!winningConditionState[c.id];
-    checkbox.disabled = disabledByOpenMeld || disabledByKong;
+    checkbox.disabled = isDisabled;
     checkbox.addEventListener('change', () => {
       winningConditionState[c.id] = checkbox.checked;
 

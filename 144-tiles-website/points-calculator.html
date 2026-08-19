@@ -58,6 +58,9 @@
 }
 .win-condition { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(155,27,27,0.08); cursor: pointer; transition: background 0.15s; }
 .win-condition:hover { background: rgba(155,27,27,0.04); }
+.win-condition.disabled { opacity: 0.45; cursor: not-allowed; }
+.win-condition.disabled .hand-name,
+.win-condition.disabled .hand-desc { color: rgba(74,42,42,0.45); }
 .win-condition input { margin-top: 3px; accent-color: var(--red); }
 .win-condition .hand-name { font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 600; color: var(--ink); }
 .win-condition .hand-desc { font-family: 'Montserrat', sans-serif; font-size: 11px; color: var(--ink-soft); line-height: 1.4; margin-top: 2px; }
