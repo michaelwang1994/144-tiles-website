@@ -1,0 +1,102 @@
+[
+  {
+    "name": "Alice",
+    "email": "alice@example.com",
+    "timestamp": "2026-08-19T19:00:00-07:00",
+    "totalFan": "3 fan",
+    "totalPoints": 8,
+    "totalTiles": 14,
+    "tiles": "🀇 🀈 🀉 🀊 🀋 🀌 🀍 🀎 🀏 🀐 🀑 🀒 🀙 🀙",
+    "tableWind": "East",
+    "seatWind": "East",
+    "checkedConditions": [
+      "Common Hand (平糊) (1 fan)",
+      "No Flowers (无花) (1 fan)",
+      "Concealed Hand (門前清) (1 fan)"
+    ]
+  },
+  {
+    "name": "Alice",
+    "email": "alice@example.com",
+    "timestamp": "2026-08-19T19:30:00-07:00",
+    "totalFan": 3,
+    "totalPoints": 4,
+    "totalTiles": 14,
+    "tiles": "🀇 🀇 🀇 🀈 🀈 🀈 🀉 🀉 🀉 🀊 🀊 🀊 🀙 🀙",
+    "tableWind": "East",
+    "seatWind": "South",
+    "checkedConditions": [
+      "All in Triplets (對對糊) (3 fan)"
+    ]
+  },
+  {
+    "name": "Alice",
+    "email": "alice@example.com",
+    "timestamp": "2026-08-19T20:00:00-07:00",
+    "totalFan": 3,
+    "totalPoints": 8,
+    "totalTiles": 14,
+    "tiles": "🀇 🀈 🀉 🀊 🀋 🀌 🀍 🀎 🀏 🀐 🀑 🀒 🀙 🀙",
+    "tableWind": "South",
+    "seatWind": "West",
+    "checkedConditions": [
+      "Common Hand (平糊) (1 fan)",
+      "No Flowers (无花) (1 fan)",
+      "Concealed Hand (門前清) (1 fan)"
+    ]
+  },
+  {
+    "name": "Alice",
+    "email": "alice@example.com",
+    "timestamp": "2026-08-19T20:30:00-07:00",
+    "totalFan": 3,
+    "totalPoints": 4,
+    "totalTiles": 14,
+    "tiles": "🀇 🀈 🀉 🀊 🀋 🀌 🀍 🀎 🀏 🀀 🀀 🀁 🀁 🀁",
+    "tableWind": "East",
+    "seatWind": "East",
+    "checkedConditions": [
+      "Mixed One Suit (混一色) (3 fan)"
+    ]
+  },
+  {
+    "name": "Bob",
+    "email": "bob@example.com",
+    "timestamp": "2026-08-19T21:00:00-07:00",
+    "totalFan": 4,
+    "totalPoints": 8,
+    "totalTiles": 14,
+    "tiles": "🀇 🀇 🀈 🀈 🀉 🀉 🀍 🀍 🀀 🀀 🀝 🀝 🀞 🀞",
+    "tableWind": "East",
+    "seatWind": "East",
+    "checkedConditions": [
+      "Seven Pairs (七對子) (4 fan)"
+    ]
+  },
+  {
+    "name": "Bob",
+    "email": "bob@example.com",
+    "timestamp": "2026-08-19T21:30:00-07:00",
+    "totalFan": 7,
+    "totalPoints": 48,
+    "totalTiles": 14,
+    "tiles": "🀇 🀇 🀇 🀈 🀈 🀈 🀉 🀉 🀉 🀊 🀋 🀌 🀍 🀍",
+    "tableWind": "South",
+    "seatWind": "South",
+    "checkedConditions": [
+      "All One Suit (清一色) (7 fan)"
+    ]
+  },
+  {
+    "name": "Charlie",
+    "email": "charlie@example.com",
+    "timestamp": null,
+    "totalFan": null,
+    "totalPoints": null,
+    "totalTiles": null,
+    "tiles": null,
+    "tableWind": null,
+    "seatWind": null,
+    "checkedConditions": null
+  }
+]
