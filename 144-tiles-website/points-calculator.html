@@ -13,15 +13,15 @@
 #tile-selector .tile-row {
   display: flex;
   flex-wrap: nowrap;
-  gap: 6px;
+  gap: 8px;
 }
 #tile-selector .tile {
   flex: 1 1 0;
   min-width: 0;
   width: auto;
-  max-width: 42px;
+  max-width: 48px;
   height: auto;
-  aspect-ratio: 42 / 56;
+  aspect-ratio: 48 / 64;
   font-size: clamp(10px, 2.2vw, 22px);
 }
 #tile-selector .tile-label { font-size: clamp(9px, 2.6vw, 12px); }
@@ -31,13 +31,13 @@
   .tile-panel { padding: 16px; }
   #tile-selector .tile-row {
     flex-wrap: wrap;
-    gap: 4px;
+    gap: 8px;
   }
   #tile-selector .tile {
-    flex: 0 0 40px;
-    width: 40px;
+    flex: 0 0 48px;
+    width: 48px;
     max-width: none;
-    height: 53px;
+    height: 64px;
     font-size: 26px;
   }
   #tile-selector .tile-label { font-size: 9px; }
@@ -50,11 +50,42 @@
 @media (max-width: 700px) {
   .flower-points-section { padding-bottom: 150px; }
 }
-.context-row.light label { color: var(--ink-soft); }
+.context-field { display: flex; flex-direction: column; gap: 4px; }
+.context-label-row { position: relative; display: flex; align-items: center; gap: 6px; }
+.context-row.light label { display: block; color: var(--ink-soft); font-size: 12px; font-weight: 600; }
 .context-row.light select {
   font-family: 'Montserrat', sans-serif; font-size: 13px; padding: 6px 10px;
   border-radius: 4px; border: 1px solid rgba(155,27,27,0.25);
-  background: #fff; color: var(--ink); margin-left: 8px;
+  background: #fff; color: var(--ink);
+}
+.info-btn {
+  background: none; border: none; padding: 0; margin: 0;
+  font-size: 14px; line-height: 1; color: var(--ink-soft);
+  cursor: pointer; opacity: 0.55; transition: opacity 0.15s;
+}
+.info-btn:hover, .info-btn:focus { opacity: 1; outline: none; }
+.info-tooltip {
+  position: absolute; top: calc(100% + 6px); left: 0;
+  width: max-content; max-width: 260px;
+  font-family: 'Montserrat', sans-serif; font-size: 11px;
+  color: var(--ink); background: #fff;
+  border: 1px solid rgba(155,27,27,0.2); border-radius: 6px;
+  padding: 8px 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  opacity: 0; visibility: hidden;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
+  z-index: 10; pointer-events: none;
+}
+.info-tooltip::before {
+  content: ''; position: absolute; top: -5px; left: 14px;
+  width: 8px; height: 8px; background: #fff;
+  border-left: 1px solid rgba(155,27,27,0.2);
+  border-top: 1px solid rgba(155,27,27,0.2);
+  transform: rotate(45deg);
+}
+.info-btn:hover + .info-tooltip,
+.info-btn:focus + .info-tooltip,
+.info-tooltip.visible {
+  opacity: 1; visibility: visible;
 }
 .win-condition { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(155,27,27,0.08); cursor: pointer; transition: background 0.15s; }
 .win-condition:hover { background: rgba(155,27,27,0.04); }
@@ -107,22 +138,33 @@
 .fan-reference-hidden .table-panel { padding-top: 6px; padding-bottom: 6px; }
 .fan-reference-hidden .panel-title { margin-bottom: 0; }
 .drag-handle {
-  width: 48px;
-  height: 6px;
-  border-radius: 3px;
-  background: var(--ink-soft);
-  margin: 8px auto 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  width: 100%;
+  padding: 8px 0;
+  margin: 0;
+  background: var(--cream);
+  border-bottom: 1px solid rgba(155,27,27,0.1);
   cursor: grab;
   touch-action: none;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   -webkit-user-select: none;
-  position: relative;
+}
+.drag-handle::after {
+  content: '';
+  display: block;
+  width: 48px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--ink-soft);
+  margin: 0 auto;
 }
 .drag-handle::before {
   content: '';
   position: absolute;
-  inset: -14px -20px;
+  inset: -6px -20px;
 }
 .fan-reference-sticky.dragging { transition: none; user-select: none; }
 .drag-handle:active { cursor: grabbing; }
@@ -255,7 +297,7 @@
   box-shadow: 0 2px 0 rgba(155,27,27,0.35);
   border-color: var(--red);
 }
-.fan-reference-hand-tiles .tile.removable:active { transform: translateY(1px); }
+.fan-reference-hand-tiles .tile.removable:active { transform: translateY(1px); box-shadow: 0 1px 0 rgba(0,0,0,0.1); border-color: var(--red); }
 .clear-hand-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .fan-reference-hand .clear-hand-btn { font-size: 11px; padding: 6px 10px; }
 .tile-actions { margin-top: 12px; }
@@ -281,7 +323,9 @@
   transition: all 0.2s;
 }
 .meld-btn:hover { background: var(--red); color: var(--cream); }
-.meld-btn.active { background: var(--red); color: var(--cream); }
+.meld-btn:active { background: var(--red); color: var(--cream); }
+.meld-btn.active,
+.meld-btn.active:hover { background: var(--cream-warm); color: var(--ink); border-color: var(--ink-soft); }
 .meld-hint {
   font-family: 'Montserrat', sans-serif;
   font-size: 12px;
@@ -355,7 +399,22 @@
 }
 .mini-hand-tiles .meld-group .tile.selected.locked .tile-label { font-size: 7px; }
 @media (max-width: 700px) {
-  .mini-hand-tiles .meld-group .tile.selected.locked { width: 20px; height: 27px; font-size: 9px; }
+  .mini-hand-tiles .meld-group {
+    padding: 2px 4px;
+    gap: 2px;
+    border-radius: 6px;
+  }
+  .mini-hand-tiles .meld-tiles { gap: 2px; }
+  .mini-hand-tiles .meld-type-label {
+    font-size: 8px;
+    padding: 1px 0;
+  }
+  .mini-hand-tiles .meld-group .tile.selected.locked {
+    width: 18px;
+    height: 24px;
+    font-size: 8px;
+  }
+  .mini-hand-tiles .meld-group .tile.selected.locked .tile-label { font-size: 6px; }
 }
 .meld-group:hover { background: rgba(155,27,27,0.1); }
 .mini-hand {
@@ -383,9 +442,21 @@
 .mini-hand-tiles {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 3px;
   flex: 1;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+}
+.mini-hand-tiles::-webkit-scrollbar { display: none; }
+.mini-hand-tiles.can-scroll {
+  box-shadow: inset -40px 0 35px -20px rgba(74, 42, 42, var(--shadow-opacity, 0.35));
+}
+.mini-hand-tiles .meld-group,
+.mini-hand-tiles .tile.selected {
+  flex-shrink: 0;
 }
 .mini-hand-tiles .tile.selected {
   width: 24px;
@@ -399,6 +470,7 @@
   box-shadow: 0 2px 0 rgba(155,27,27,0.35);
   border-color: var(--red);
 }
+.mini-hand-tiles .tile.removable:active { transform: translateY(1px); box-shadow: 0 1px 0 rgba(0,0,0,0.1); border-color: var(--red); }
 .mini-hand-actions {
   display: flex;
   align-items: center;/
@@ -598,16 +670,16 @@ footer.calc-footer {
 <nav class="nav">
   <div class="nav-inner">
     <div class="nav-left">
-      <a href="index.html#top" class="nav-logo-link">
+      <a href="/#top" class="nav-logo-link">
         <img class="nav-logo" src="assets/logo.png" alt="144 Tiles">
       </a>
     </div>
     <div class="nav-links">
-      <a href="index.html#top">Home</a>
-      <a href="index.html#events">Events</a>
-      <a href="index.html#mission">About</a>
+      <a href="/#top">Home</a>
+      <a href="/#events">Events</a>
+      <a href="/#mission">About</a>
       <a href="/points" class="active">Points</a>
-      <a href="index.html#contact">Contact</a>
+      <a href="/#contact">Contact</a>
     </div>
   </div>
 </nav>
@@ -615,36 +687,48 @@ footer.calc-footer {
 <section class="calc-hero hero">
   <div class="hero-grid hero-noimage" style="justify-items: center; text-align: center;">
     <div>
-      <h1 class="hero-title"><span class="script">Points</span> Calculator</h1>
-      <p class="hero-tagline" style="max-width: 46ch; margin-left: auto; margin-right: auto;">Mahjong scoring is complex. Select your tiles to build your hand, then use the fan reference to convert to points.</p>
-      <p class="hero-tagline" style="max-width: 52ch; margin-left: auto; margin-right: auto; font-size: 15px; color: var(--cream); margin-top: 12px;">Our recommendation is to add tiles as they are revealed from your hand to keep track of what remaining potential hands can be formed.</p>
+      <h1 class="hero-title">Auntie Intelligence</h1>
+      <p class="hero-tagline" style="max-width: 46ch; margin-left: auto; margin-right: auto;">Mahjong Hand Analyzer</p>
+      <p class="hero-tagline" style="max-width: 52ch; margin-left: auto; margin-right: auto; font-size: 15px; color: var(--cream); margin-top: 12px;">How to use: Add tiles that you want to use in your strategy to show potential winning hands. Hong Kong style.</p>
     </div>
   </div>
 </section>
 
 <section class="calc-section">
   <div class="tile-panel">
-    <div class="panel-title">Game context</div>
-    <div class="panel-subtitle">Set the table (round) wind and seat wind for scoring.</div>
+    <div class="panel-title">Set Winds</div>
+    <div class="panel-subtitle">Select the current Table Wind and your Seat Wind. These determine which Wind sets can earn you extra points.</div>
     <div class="context-row light">
-      <label>
-        Table wind:
+      <div class="context-field">
+        <div class="context-label-row">
+          <label for="table-wind">Table wind</label>
+          <button type="button" class="info-btn" aria-label="Table wind info" aria-describedby="table-wind-info">
+            <span aria-hidden="true">ⓘ</span>
+          </button>
+          <span class="info-tooltip" id="table-wind-info" role="tooltip">The wind shared by all players this round.</span>
+        </div>
         <select id="table-wind">
           <option value="e">East 東</option>
           <option value="s">South 南</option>
           <option value="w">West 西</option>
           <option value="n">North 北</option>
         </select>
-      </label>
-      <label>
-        Seat wind:
+      </div>
+      <div class="context-field">
+        <div class="context-label-row">
+          <label for="seat-wind">Seat wind</label>
+          <button type="button" class="info-btn" aria-label="Seat wind info" aria-describedby="seat-wind-info">
+            <span aria-hidden="true">ⓘ</span>
+          </button>
+          <span class="info-tooltip" id="seat-wind-info" role="tooltip">The wind assigned specifically to you.</span>
+        </div>
         <select id="seat-wind">
-          <option value="e">East 東 (Dealer - 1)</option>
-          <option value="s">South 南 (2)</option>
-          <option value="w">West 西 (3)</option>
-          <option value="n">North 北 (4)</option>
+          <option value="e">East 東 (1st player/dealer)</option>
+          <option value="s">South 南 (2nd player)</option>
+          <option value="w">West 西 (3rd player)</option>
+          <option value="n">North 北 (4th player)</option>
         </select>
-      </label>
+      </div>
     </div>
   </div>
 </section>
@@ -654,8 +738,8 @@ footer.calc-footer {
     <div class="panel-title tile-panel-title">
       <span>Select your tiles</span>
       <span class="tile-panel-actions">
-        <button id="potential-toggle" class="clear-hand-btn" type="button">Show potential hands</button>
-        <button id="clear-hand-top" class="clear-hand-btn" type="button">Clear hand</button>
+        <button id="potential-toggle" class="clear-hand-btn" type="button">Find winning hands</button>
+        <button id="clear-hand-top" class="clear-hand-btn" type="button">Reset</button>
       </span>
     </div>
     <div class="panel-subtitle">Select a tile up to 4 times for regular tiles, once for flowers.</div>
@@ -688,10 +772,10 @@ footer.calc-footer {
 
 <section class="calc-section" style="padding-top: 0;">
   <div class="tile-panel collapsible">
-    <div class="panel-title">Wind &amp; Dragon fan</div>
-    <div class="panel-subtitle">Auto-detected wind and dragon scoring. A double wind (seat = table) counts as 2 fan.</div>
-    <div class="hand-list" id="wind-dragon-scenarios"></div>
-    <div class="hand-summary" id="wind-dragon-summary">Wind &amp; Dragon fan total: 0 fan</div>
+    <div class="panel-title">Wind &amp; Archer fan</div>
+    <div class="panel-subtitle">Auto-detected wind and archer scoring. A double wind (seat = table) counts as 2 fan.</div>
+    <div class="hand-list" id="wind-archer-scenarios"></div>
+    <div class="hand-summary" id="wind-archer-summary">Wind &amp; Archer fan total: 0 fan</div>
   </div>
 </section>
 
@@ -737,7 +821,7 @@ footer.calc-footer {
 </section>
 
 <footer class="calc-footer">
-  <a href="index.html">← Back to 144 Tiles</a>
+  <a href="/">← Back to 144 Tiles</a>
 </footer>
 
 <div class="modal-overlay" id="potential-modal" style="display: none;">
@@ -919,6 +1003,39 @@ footer.calc-footer {
       scrollTicking = false;
     });
   }, { passive: true });
+
+  // Info tooltip toggle for click/tap
+  (function () {
+    const infoButtons = document.querySelectorAll('.info-btn');
+    if (!infoButtons.length) return;
+
+    function closeAllInfoTooltips(exceptTooltip) {
+      document.querySelectorAll('.info-tooltip.visible').forEach((tip) => {
+        if (tip !== exceptTooltip) tip.classList.remove('visible');
+      });
+    }
+
+    infoButtons.forEach((btn) => {
+      const tooltip = btn.nextElementSibling;
+      if (!tooltip || !tooltip.classList.contains('info-tooltip')) return;
+
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isVisible = tooltip.classList.contains('visible');
+        closeAllInfoTooltips(tooltip);
+        tooltip.classList.toggle('visible', !isVisible);
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!(e.target instanceof Element) || e.target.closest('.info-btn')) return;
+      closeAllInfoTooltips(null);
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeAllInfoTooltips(null);
+    });
+  })();
 })();
 </script>
 </body>

@@ -6,8 +6,8 @@ import {
   calculateFlowerScenarios,
   findDecompositions,
   isValidWinningHand,
-  detectWindDragonFaan,
-  getWindDragonFan,
+  detectWindArcherFaan,
+  getWindArcherFan,
   isStrictlyConcealedHand,
   findDecompositionsWithLockedGroups,
   type LockedGroup,
@@ -105,7 +105,7 @@ describe('detectHandPatterns', () => {
     expect(detected['all-triplets']).toBe(true);
   });
 
-  it('detects Small Dragons', () => {
+  it('detects Small Archers', () => {
     const selected = selectedFromIds(
       ids(
         repeat('dr', 3),
@@ -116,11 +116,11 @@ describe('detectHandPatterns', () => {
       )
     );
     const detected = detectHandPatterns(selected);
-    expect(detected['small-dragons']).toBe(true);
-    expect(detected['great-dragons']).toBe(false);
+    expect(detected['small-archers']).toBe(true);
+    expect(detected['great-archers']).toBe(false);
   });
 
-  it('detects Great Dragons', () => {
+  it('detects Great Archers', () => {
     const selected = selectedFromIds(
       ids(
         repeat('dr', 3),
@@ -131,8 +131,8 @@ describe('detectHandPatterns', () => {
       )
     );
     const detected = detectHandPatterns(selected);
-    expect(detected['great-dragons']).toBe(true);
-    expect(detected['small-dragons']).toBe(false);
+    expect(detected['great-archers']).toBe(true);
+    expect(detected['small-archers']).toBe(false);
   });
 
   it('detects Small Winds', () => {
@@ -328,10 +328,10 @@ describe('calculateFlowerScenarios', () => {
   });
 });
 
-describe('detectWindDragonFaan', () => {
+describe('detectWindArcherFaan', () => {
   it('detects seat wind', () => {
     const selected = selectedFromIds(ids(repeat('we', 3)));
-    const result = detectWindDragonFaan(selected, 'e', 's');
+    const result = detectWindArcherFaan(selected, 'e', 's');
     expect(result['seat-wind']!.applies).toBe(true);
     expect(result['seat-wind']!.fan).toBe(1);
     expect(result['prevailing-wind']!.applies).toBe(false);
@@ -339,7 +339,7 @@ describe('detectWindDragonFaan', () => {
 
   it('detects double wind as 2 fan', () => {
     const selected = selectedFromIds(ids(repeat('we', 3)));
-    const result = detectWindDragonFaan(selected, 'e', 'e');
+    const result = detectWindArcherFaan(selected, 'e', 'e');
     expect(result['seat-wind']!.applies).toBe(true);
     expect(result['seat-wind']!.fan).toBe(2);
     expect(result['prevailing-wind']!.applies).toBe(false);
@@ -347,35 +347,35 @@ describe('detectWindDragonFaan', () => {
 
   it('detects prevailing wind', () => {
     const selected = selectedFromIds(ids(repeat('ws', 3)));
-    const result = detectWindDragonFaan(selected, 'e', 's');
+    const result = detectWindArcherFaan(selected, 'e', 's');
     expect(result['prevailing-wind']!.applies).toBe(true);
     expect(result['prevailing-wind']!.fan).toBe(1);
   });
 
-  it('detects dragon count', () => {
+  it('detects archer count', () => {
     const selected = selectedFromIds(ids(repeat('dr', 3), repeat('dg', 3), repeat('dw', 3)));
-    const result = detectWindDragonFaan(selected, 'e', 's');
-    expect(result['dragons']!.fan).toBe(3);
+    const result = detectWindArcherFaan(selected, 'e', 's');
+    expect(result['archers']!.fan).toBe(3);
   });
 });
 
-describe('getWindDragonFan', () => {
-  it('sums selected wind and dragon faan', () => {
+describe('getWindArcherFan', () => {
+  it('sums selected wind and archer faan', () => {
     const selected = selectedFromIds(ids(repeat('we', 3), repeat('dr', 3), repeat('dg', 3)));
-    const state = { 'seat-wind': true, 'dragons': 2 };
-    expect(getWindDragonFan(state, selected, 'e', 's')).toBe(3);
+    const state = { 'seat-wind': true, 'archers': 2 };
+    expect(getWindArcherFan(state, selected, 'e', 's')).toBe(3);
   });
 
   it('counts double wind as 2 fan', () => {
     const selected = selectedFromIds(ids(repeat('we', 3)));
     const state = { 'seat-wind': true };
-    expect(getWindDragonFan(state, selected, 'e', 'e')).toBe(2);
+    expect(getWindArcherFan(state, selected, 'e', 'e')).toBe(2);
   });
 
-  it('caps dragon fan at detected count', () => {
+  it('caps archer fan at detected count', () => {
     const selected = selectedFromIds(ids(repeat('dr', 3)));
-    const state = { 'dragons': 3 };
-    expect(getWindDragonFan(state, selected, 'e', 's')).toBe(1);
+    const state = { 'archers': 3 };
+    expect(getWindArcherFan(state, selected, 'e', 's')).toBe(1);
   });
 });
 

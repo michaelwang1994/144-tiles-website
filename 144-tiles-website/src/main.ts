@@ -15,7 +15,7 @@ const suited = [
 ];
 const honors = [
   "MJEastwind", "MJSouthwind", "MJWestwind", "MJNorthwind",
-  "MJGreendragon", "MJReddragon", "MJWhitedragon",
+  "MJGreenarcher", "MJRedarcher", "MJWhitearcher",
 ];
 const flowers = [
   "MJmei", "MJlan", "MJju", "MJzhu",

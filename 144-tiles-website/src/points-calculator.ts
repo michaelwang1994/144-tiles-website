@@ -22,8 +22,8 @@ function tileImagePath(id: string): string {
     return `${base}MJ${windName}wind.svg`;
   }
   if (suit === 'd') {
-    const dragonName = { r: 'Red', g: 'Green', w: 'White' }[rank];
-    return `${base}MJ${dragonName}dragon.svg`;
+    const archerName = { r: 'Red', g: 'Green', w: 'White' }[rank];
+    return `${base}MJ${archerName}archer.svg`;
   }
   if (suit === 'f') {
     const flowerName = { '1': 'mei', '2': 'lan', '3': 'ju', '4': 'zhu' }[rank];
@@ -38,7 +38,7 @@ function tileImagePath(id: string): string {
 
 export const suits: SuitGroup[] = [
   {
-    label: 'Characters',
+    label: 'Numbers',
     tiles: [
       { id: 'm1', c: '🀇', img: tileImagePath('m1'), max: 4 },
       { id: 'm2', c: '🀈', img: tileImagePath('m2'), max: 4 },
@@ -52,7 +52,7 @@ export const suits: SuitGroup[] = [
     ],
   },
   {
-    label: 'Bamboo',
+    label: 'Strings',
     tiles: [
       { id: 's1', c: '🀐', img: tileImagePath('s1'), max: 4 },
       { id: 's2', c: '🀑', img: tileImagePath('s2'), max: 4 },
@@ -66,7 +66,7 @@ export const suits: SuitGroup[] = [
     ],
   },
   {
-    label: 'Dots',
+    label: 'Coins',
     tiles: [
       { id: 'p1', c: '🀙', img: tileImagePath('p1'), max: 4 },
       { id: 'p2', c: '🀚', img: tileImagePath('p2'), max: 4 },
@@ -89,7 +89,7 @@ export const suits: SuitGroup[] = [
     ],
   },
   {
-    label: 'Dragons',
+    label: 'Archers',
     tiles: [
       { id: 'dr', c: '🀄\uFE0E', img: tileImagePath('dr'), max: 4 },
       { id: 'dg', c: '🀅', img: tileImagePath('dg'), max: 4 },
@@ -384,8 +384,8 @@ export const handPatterns: HandPattern[] = [
   { id: 'mixed-one-suit', name: 'Mixed One Suit (混一色)', fan: 3, desc: 'Only honor tiles and tiles from one suit.', limit: false, auto: true },
   { id: 'all-one-suit', name: 'All One Suit (清一色)', fan: 7, desc: 'All tiles from one suit, formed into 4 melds and 1 pair.', limit: false, auto: true },
   { id: 'mixed-orphans', name: 'Mixed Orphans (花幺九)', fan: 1, desc: 'Pongs/Kongs of Ones, Nines, or Honor tiles only.', limit: false, auto: true },
-  { id: 'small-dragons', name: 'Small Dragons (小三元)', fan: 3, desc: 'Melds of 2 dragons and a pair of the 3rd dragon.', limit: false, auto: true },
-  { id: 'great-dragons', name: 'Great Dragons (大三元)', fan: 5, desc: 'Melds of all 3 dragons.', limit: false, auto: true },
+  { id: 'small-archers', name: 'Small Archers (小三元)', fan: 3, desc: 'Melds of 2 archers and a pair of the 3rd archer.', limit: false, auto: true },
+  { id: 'great-archers', name: 'Great Archers (大三元)', fan: 5, desc: 'Melds of all 3 archers.', limit: false, auto: true },
   { id: 'small-winds', name: 'Small Winds (小四喜)', fan: 6, desc: 'Melds of 3 winds and a pair of the 4th wind.', limit: false, auto: true },
   { id: 'seven-pairs', name: 'Seven Pairs (七對子)', fan: 4, desc: 'Hand consists of seven pairs.', limit: false, auto: true },
   { id: 'all-honor-tiles', name: 'All Honor Tiles (字一色)', fan: 10, desc: 'All honor tiles.', limit: true, auto: true },
@@ -404,8 +404,8 @@ export const sampleHands: Record<string, Record<string, number>> = {
   'mixed-one-suit': { m1: 1, m2: 1, m3: 1, m4: 1, m5: 1, m6: 1, m7: 1, m8: 1, m9: 1, we: 2, ws: 3 },
   'all-one-suit': { m1: 3, m2: 3, m3: 3, m4: 1, m5: 1, m6: 1, m7: 2 },
   'mixed-orphans': { m1: 3, m9: 3, s1: 3, s9: 3, we: 2 },
-  'small-dragons': { dr: 3, dg: 3, dw: 2, m1: 3, m2: 3 },
-  'great-dragons': { dr: 3, dg: 3, dw: 3, we: 2, m1: 3 },
+  'small-archers': { dr: 3, dg: 3, dw: 2, m1: 3, m2: 3 },
+  'great-archers': { dr: 3, dg: 3, dw: 3, we: 2, m1: 3 },
   'small-winds': { we: 3, ws: 3, ww: 3, wn: 2, dr: 3 },
   'seven-pairs': { m1: 2, m2: 2, m3: 2, m7: 2, we: 2, p5: 2, p6: 2 },
   'all-honor-tiles': { we: 3, ws: 3, ww: 3, dr: 3, dw: 2 },
@@ -552,19 +552,19 @@ export function detectHandPatterns(
     }
   }
 
-  // Dragon patterns
-  const dragonIds = ['dr', 'dg', 'dw'];
-  const dragonTrips = dragonIds.filter((id) => (counts[id] || 0) >= 3);
-  const dragonPairs = dragonIds.filter((id) => (counts[id] || 0) === 2);
-  if (dragonTrips.length === 3) detected['great-dragons'] = true;
-  if (dragonTrips.length === 2 && dragonPairs.length === 1) detected['small-dragons'] = true;
+  // Archer patterns
+  const archerIds = ['dr', 'dg', 'dw'];
+  const archerTrips = archerIds.filter((id) => (counts[id] || 0) >= 3);
+  const archerPairs = archerIds.filter((id) => (counts[id] || 0) === 2);
+  if (archerTrips.length === 3) detected['great-archers'] = true;
+  if (archerTrips.length === 2 && archerPairs.length === 1) detected['small-archers'] = true;
 
   // Wind patterns
   const windIds = ['we', 'ws', 'ww', 'wn'];
-  const windTrips = windIds.filter((id) => (counts[id] || 0) >= 3);
-  const windPairs = windIds.filter((id) => (counts[id] || 0) === 2);
-  if (windTrips.length === 4) detected['great-winds'] = true;
-  if (windTrips.length === 3 && windPairs.length === 1) detected['small-winds'] = true;
+  const winarcherTripCount = windIds.filter((id) => (counts[id] || 0) >= 3);
+  const winarcherPairCount = windIds.filter((id) => (counts[id] || 0) === 2);
+  if (winarcherTripCount.length === 4) detected['great-winds'] = true;
+  if (winarcherTripCount.length === 3 && winarcherPairCount.length === 1) detected['small-winds'] = true;
 
   // Nine gates: one suit 1112345678999 plus one extra tile of the same suit
   if (lockedGroups.length === 0 && !hasHonor && suitKeys.length === 1 && mainIds.length === 14) {
@@ -703,13 +703,13 @@ export function analyzePotentialHands(
     return (counts[id] || 0) > 0 && (counts[t2] || 0) > 0 && (counts[t3] || 0) > 0;
   });
 
-  const dragonCounts = { dr: counts.dr || 0, dg: counts.dg || 0, dw: counts.dw || 0 };
+  const archerCounts = { dr: counts.dr || 0, dg: counts.dg || 0, dw: counts.dw || 0 };
   const windCounts = { we: counts.we || 0, ws: counts.ws || 0, ww: counts.ww || 0, wn: counts.wn || 0 };
 
   const nonWindIds = mainIds.filter((id) => id.charAt(0) !== 'w');
   const nonWindCount = nonWindIds.length;
-  const nonDragonIds = mainIds.filter((id) => !['dr', 'dg', 'dw'].includes(id));
-  const nonDragonCount = nonDragonIds.length;
+  const nonArcherIds = mainIds.filter((id) => !['dr', 'dg', 'dw'].includes(id));
+  const nonArcherCount = nonArcherIds.length;
 
   const out: PotentialHand[] = [];
 
@@ -803,23 +803,23 @@ export function analyzePotentialHands(
         }
         break;
       }
-      case 'small-dragons': {
-        if (nonDragonCount <= 6) {
-          const dPairs = Object.values(dragonCounts).filter((c) => c >= 2).length;
-          const dTrips = Object.values(dragonCounts).filter((c) => c >= 3).length;
-          if (dTrips >= 1 && dPairs + dTrips >= 2) {
+      case 'small-archers': {
+        if (nonArcherCount <= 6) {
+          const archerPairCount = Object.values(archerCounts).filter((c) => c >= 2).length;
+          const archerTripCount = Object.values(archerCounts).filter((c) => c >= 3).length;
+          if (archerTripCount >= 1 && archerPairCount + archerTripCount >= 2) {
             possible = true;
-            note = `${dTrips} dragon triplet(s), ${dPairs} dragon pair(s)`;
+            note = `${archerTripCount} archer triplet(s), ${archerPairCount} archer pair(s)`;
           }
         }
         break;
       }
-      case 'great-dragons': {
-        if (nonDragonCount <= 3) {
-          const dTrips = Object.values(dragonCounts).filter((c) => c >= 3).length;
-          if (dTrips >= 1) {
+      case 'great-archers': {
+        if (nonArcherCount <= 3) {
+          const archerTripCount = Object.values(archerCounts).filter((c) => c >= 3).length;
+          if (archerTripCount >= 1) {
             possible = true;
-            note = `${dTrips} dragon triplet(s)`;
+            note = `${archerTripCount} archer triplet(s)`;
           }
         }
         break;
@@ -941,7 +941,7 @@ export function calculateFlowerScenarios(
   };
 }
 
-export interface WindDragonScenario {
+export interface WindArcherScenario {
   id: string;
   name: string;
   fan: number;
@@ -950,13 +950,13 @@ export interface WindDragonScenario {
   max?: number;
 }
 
-export const windDragonScenarios: WindDragonScenario[] = [
+export const windArcherScenarios: WindArcherScenario[] = [
   { id: 'seat-wind', name: 'Seat Wind (門風)', fan: 1, desc: 'A meld of your seat wind.' },
   { id: 'prevailing-wind', name: 'Prevailing Wind (圈風)', fan: 1, desc: 'A meld of the prevailing (table) wind.' },
-  { id: 'dragons', name: 'Dragons (三元)', fan: 0, desc: '0/1/2/3 fan per dragon triplet/kong (0–3).', stepper: true, max: 3 },
+  { id: 'archers', name: 'Archers (三元)', fan: 0, desc: '0/1/2/3 fan per archer triplet/kong (0–3).', stepper: true, max: 3 },
 ];
 
-export function detectWindDragonFaan(
+export function detectWindArcherFaan(
   selected: Record<string, number>,
   seatWind: string,
   tableWind: string
@@ -970,24 +970,24 @@ export function detectWindDragonFaan(
   const tableWindId = 'w' + tableWind;
   const isDoubleWind = seatWind === tableWind && hasMeld(seatWindId);
 
-  const dragonCount = ['dr', 'dg', 'dw'].filter(hasMeld).length;
+  const archerCount = ['dr', 'dg', 'dw'].filter(hasMeld).length;
 
   return {
     'seat-wind': { applies: hasMeld(seatWindId), fan: isDoubleWind ? 2 : 1 },
     'prevailing-wind': { applies: hasMeld(tableWindId) && !isDoubleWind, fan: 1 },
-    'dragons': { applies: true, fan: dragonCount },
+    'archers': { applies: true, fan: archerCount },
   };
 }
 
-export function getWindDragonFan(
+export function getWindArcherFan(
   state: Record<string, boolean | number>,
   selected: Record<string, number>,
   seatWind: string,
   tableWind: string
 ): number {
-  const detected = detectWindDragonFaan(selected, seatWind, tableWind);
+  const detected = detectWindArcherFaan(selected, seatWind, tableWind);
   let total = 0;
-  windDragonScenarios.forEach((s) => {
+  windArcherScenarios.forEach((s) => {
     if (s.stepper) {
       const value = (state[s.id] as number | undefined) ?? 0;
       total += Math.min(value, detected[s.id]!.fan);
