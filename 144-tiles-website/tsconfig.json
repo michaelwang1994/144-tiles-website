@@ -9,6 +9,7 @@
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
+    "resolveJsonModule": true,
     "noUncheckedIndexedAccess": true,
     "strict": true,
     "verbatimModuleSyntax": true,

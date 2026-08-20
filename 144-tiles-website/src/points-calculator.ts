@@ -968,13 +968,12 @@ export function detectWindArcherFaan(
 
   const seatWindId = 'w' + seatWind;
   const tableWindId = 'w' + tableWind;
-  const isDoubleWind = seatWind === tableWind && hasMeld(seatWindId);
 
   const archerCount = ['dr', 'dg', 'dw'].filter(hasMeld).length;
 
   return {
-    'seat-wind': { applies: hasMeld(seatWindId), fan: isDoubleWind ? 2 : 1 },
-    'prevailing-wind': { applies: hasMeld(tableWindId) && !isDoubleWind, fan: 1 },
+    'seat-wind': { applies: hasMeld(seatWindId), fan: 1 },
+    'prevailing-wind': { applies: hasMeld(tableWindId), fan: 1 },
     'archers': { applies: true, fan: archerCount },
   };
 }

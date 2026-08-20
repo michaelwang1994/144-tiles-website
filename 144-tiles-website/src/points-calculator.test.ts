@@ -337,12 +337,13 @@ describe('detectWindArcherFaan', () => {
     expect(result['prevailing-wind']!.applies).toBe(false);
   });
 
-  it('detects double wind as 2 fan', () => {
+  it('detects double wind as two separate 1 fan entries', () => {
     const selected = selectedFromIds(ids(repeat('we', 3)));
     const result = detectWindArcherFaan(selected, 'e', 'e');
     expect(result['seat-wind']!.applies).toBe(true);
-    expect(result['seat-wind']!.fan).toBe(2);
-    expect(result['prevailing-wind']!.applies).toBe(false);
+    expect(result['seat-wind']!.fan).toBe(1);
+    expect(result['prevailing-wind']!.applies).toBe(true);
+    expect(result['prevailing-wind']!.fan).toBe(1);
   });
 
   it('detects prevailing wind', () => {
@@ -366,9 +367,9 @@ describe('getWindArcherFan', () => {
     expect(getWindArcherFan(state, selected, 'e', 's')).toBe(3);
   });
 
-  it('counts double wind as 2 fan', () => {
+  it('counts double wind as 2 fan from separate entries', () => {
     const selected = selectedFromIds(ids(repeat('we', 3)));
-    const state = { 'seat-wind': true };
+    const state = { 'seat-wind': true, 'prevailing-wind': true };
     expect(getWindArcherFan(state, selected, 'e', 'e')).toBe(2);
   });
 

@@ -28,25 +28,9 @@ import {
 
 function $(id: string) { return document.getElementById(id); }
 
-// Google Form pre-fill configuration.
-// Create a Google Form with these fields, then replace the placeholders below.
-// Field entry IDs are found in the pre-filled URL (the numbers after "entry.").
-const GOOGLE_FORM_CONFIG = {
-  formId: 'YOUR_GOOGLE_FORM_ID',
-  entries: {
-    name: 'YOUR_NAME_ENTRY_ID',
-    email: 'YOUR_EMAIL_ENTRY_ID',
-    totalPoints: 'YOUR_TOTAL_POINTS_ENTRY_ID',
-    totalTiles: 'YOUR_TOTAL_TILES_ENTRY_ID',
-    tiles: 'YOUR_TILES_ENTRY_ID',
-    checkedConditions: 'YOUR_CHECKED_CONDITIONS_ENTRY_ID',
-    pungs: 'YOUR_PUNGS_ENTRY_ID',
-    chows: 'YOUR_CHOWS_ENTRY_ID',
-    kongs: 'YOUR_KONGS_ENTRY_ID',
-    tableWind: 'YOUR_TABLE_WIND_ENTRY_ID',
-    seatWind: 'YOUR_SEAT_WIND_ENTRY_ID',
-  },
-};
+import GOOGLE_FORM_CONFIG from './generated-google-form-config.json';
+
+const CHECKOUT_PASSWORD = 'gangnam';
 
 const selected: Record<string, number> = {}; // tile id -> count
 const melds: LockedGroup[] = [];
@@ -594,8 +578,7 @@ function renderFlowerPoints() {
     const active = applies;
 
     const item = document.createElement('div');
-    const isCommon = s.id === 'no-flowers' || s.id === 'seat-flower';
-    item.className = 'hand-item' + (isCommon ? ' important' : (active ? ' auto-detected' : ''));
+    item.className = 'hand-item' + (active ? ' auto-detected' : '');
 
     const info = document.createElement('div');
     const name = document.createElement('div');
@@ -1344,27 +1327,34 @@ function getCheckoutSummary(): CheckoutSummary {
 }
 
 function buildGoogleFormPrefillUrl(name: string, email: string, summary: CheckoutSummary): string {
-  const base = `https://docs.google.com/forms/d/e/${GOOGLE_FORM_CONFIG.formId}/viewform`;
+  const base = `https://docs.google.com/forms/d/${GOOGLE_FORM_CONFIG.formId}/viewform`;
   const params = new URLSearchParams({ usp: 'pp_url' });
   const e = GOOGLE_FORM_CONFIG.entries;
 
-  function add(entryId: string, value: string) {
+  function addEntry(entryId: string, value: string) {
     if (entryId && !entryId.startsWith('YOUR_')) {
       params.append(`entry.${entryId}`, value);
     }
   }
 
-  add(e.name, name);
-  add(e.email, email);
-  add(e.totalPoints, String(summary.totalPoints));
-  add(e.totalTiles, String(summary.totalTiles));
-  add(e.tiles, summary.tiles);
-  add(e.checkedConditions, summary.checkedConditions.join('\n'));
-  add(e.pungs, String(summary.pungs));
-  add(e.chows, String(summary.chows));
-  add(e.kongs, String(summary.kongs));
-  add(e.tableWind, summary.tableWind);
-  add(e.seatWind, summary.seatWind);
+  addEntry(e.name, name);
+  addEntry(e.totalFan, String(summary.totalFan));
+  addEntry(e.totalPoints, String(summary.totalPoints));
+  addEntry(e.totalTiles, String(summary.totalTiles));
+  addEntry(e.tiles, summary.tiles);
+  // Checkbox questions need one entry.* param per selected choice.
+  summary.checkedConditions.forEach((condition) => {
+    addEntry(e.checkedConditions, condition);
+  });
+  addEntry(e.tableWind, summary.tableWind);
+  addEntry(e.seatWind, summary.seatWind);
+
+  // Google Forms "Collect email addresses" field uses `emailAddress`, not `entry.*`.
+  if (e.email && e.email === 'emailAddress') {
+    params.append('emailAddress', email);
+  } else if (e.email && !e.email.startsWith('YOUR_')) {
+    addEntry(e.email, email);
+  }
 
   return `${base}?${params.toString()}`;
 }
@@ -1444,6 +1434,14 @@ function submitCheckout(e: Event) {
   const email = ($('checkout-email') as HTMLInputElement | null)?.value.trim() ?? '';
   if (!name || !email) {
     alert('Please enter your name and email.');
+    return;
+  }
+
+  const password = window.prompt(
+    'Enter the password to open the pre-filled Google Form.\n\nHint: what is the first word of the name of the venue this tournament is held? all lower-case, 7 letters.'
+  );
+  if (password === null || password.trim().toLowerCase() !== CHECKOUT_PASSWORD) {
+    alert('Incorrect password.');
     return;
   }
 
