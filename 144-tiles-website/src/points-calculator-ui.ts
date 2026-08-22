@@ -308,7 +308,7 @@ function updateTileUI() {
   renderWinningConditions();
 
   const checkoutHand = $('checkout-hand') as HTMLButtonElement | null;
-  if (checkoutHand) checkoutHand.disabled = !isValidWinningHand(selected, melds) || getTotalFan() === 0;
+  if (checkoutHand) checkoutHand.disabled = getSortedTiles(selected).length === 0;
   renderReferenceTotal();
   renderFanBreakdown();
 }
@@ -1310,7 +1310,7 @@ function getCheckoutSummary(): CheckoutSummary {
     ...(bonusTileStrs.length ? ['|', ...bonusTileStrs] : []),
   ].join(' ') || 'None';
 
-  const totalFan = getTotalFan();
+  const totalFan = isValidWinningHand(selected, melds) ? getTotalFan() : 0;
   return {
     totalPoints: fanToPoints(totalFan),
     totalFan,
@@ -1364,11 +1364,19 @@ function renderCheckoutDetails() {
   if (!container) return;
   const summary = getCheckoutSummary();
 
+  const hasHandPattern = handPatterns.some((p) => handPatternState[p.id]);
+  const showNoWinMessage = summary.totalFan === 0 || !hasHandPattern;
+
+  const noticeHtml = showNoWinMessage
+    ? `<div class="checkout-notice">You did not win this round! Log your results anyway for a surprise at the end of the night.</div>`
+    : '';
+
   const conditionsHtml = summary.checkedConditions.length
     ? `<ul>${summary.checkedConditions.map((c) => `<li>${escapeHtml(c)}</li>`).join('')}</ul>`
     : '<p>No conditions selected.</p>';
 
   container.innerHTML = `
+    ${noticeHtml}
     <h4>Hand summary</h4>
     <p><strong>Total fan:</strong> ${formatFan(summary.totalFan)}</p>
     <p><strong>Total points:</strong> ${summary.totalPoints}</p>

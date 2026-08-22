@@ -299,8 +299,10 @@ function receiptFor(email: string, group: Submission[], logoUri: string): string
 
   const totalFan = hands.reduce((sum, s) => sum + parseFan(s.totalFan), 0);
   const totalPoints = hands.reduce((sum, s) => sum + parsePoints(s.totalPoints), 0);
+  const hasPoints = totalFan > 0 || totalPoints > 0;
+  const betterLuckMessage = `<div class="no-hand-message">Better luck next time! Auntie is still proud of you.</div>`;
 
-  const items = hasHands
+  const handItems = hasHands
     ? hands
         .map((s, index) => {
           const conditions = Array.isArray(s.checkedConditions)
@@ -328,7 +330,11 @@ function receiptFor(email: string, group: Submission[], logoUri: string): string
         </div>`;
         })
         .join('\n')
-    : `<div class="no-hand-message">Auntie is still proud of you. Better luck next time!</div>`;
+    : '';
+
+  const items = hasHands
+    ? (hasPoints ? '' : betterLuckMessage) + handItems
+    : betterLuckMessage;
 
   const logoImg = logoUri
     ? `<img class="receipt-logo" src="${logoUri}" alt="144 Tiles logo">`
@@ -357,7 +363,7 @@ function receiptFor(email: string, group: Submission[], logoUri: string): string
         <div class="total-row"><span>Total points</span><span>${totalPoints}</span></div>
       </div>
 
-      ${commonPattern ? `
+      ${hasHands && hasPoints && commonPattern ? `
       <div class="receipt-common">
         <p><strong>Most common hand pattern</strong> (${commonCount}×)</p>
         <p class="common-pattern">${escapeHtml(commonPattern)}</p>
