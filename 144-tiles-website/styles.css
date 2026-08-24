@@ -874,7 +874,7 @@ a { color: inherit; }
   .testimonial { padding: 28px 22px 32px !important; }
 }
 
-/* ---- POINTS CALCULATOR ---- */
+/* ---- POINTS ANALYZER ---- */
 .calc-hero { background: var(--red); color: var(--cream); }
 .calc-hero .hero-title { color: var(--cream); }
 .calc-hero .hero-title .script { color: var(--cream-warm); }
