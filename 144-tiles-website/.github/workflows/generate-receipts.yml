@@ -1,0 +1,26 @@
+name: Generate Receipts
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 0'
+
+jobs:
+  generate-receipts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Generate and email receipts
+        env:
+          EMAIL_HOST: smtp.gmail.com
+          EMAIL_USER: michael@144tiles.com
+          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+        run: npm run generate-receipts
