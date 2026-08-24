@@ -914,6 +914,7 @@ a { color: inherit; }
   border: 1px solid #d6cfc2; border-radius: 6px;
   box-shadow: 0 2px 0 rgba(0,0,0,0.08);
   cursor: pointer; user-select: none;
+  touch-action: manipulation;
   transition: transform 0.12s, box-shadow 0.12s, border-color 0.12s;
   position: relative;
 }
