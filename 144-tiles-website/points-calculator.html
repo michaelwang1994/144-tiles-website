@@ -194,6 +194,19 @@
   background: rgba(155,27,27,0.04);
   border-radius: 8px;
 }
+.fan-reference-hand-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: nowrap;
+}
+.copy-hand-btn {
+  width: 100%;
+  margin-top: 12px;
+  font-size: 12px;
+  padding: 10px 14px;
+  text-align: center;
+}
 .fan-reference-hand-label {
   font-family: 'Montserrat', sans-serif;
   font-size: 12px;
@@ -430,15 +443,6 @@
   opacity: 1;
   pointer-events: auto;
 }
-.mini-hand-label {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--ink-soft);
-  white-space: nowrap;
-}
 .mini-hand-tiles {
   display: flex;
   align-items: center;
@@ -527,113 +531,6 @@
 .modal-body .hand-item { min-width: 0; }
 .modal-body .hand-item .hand-desc,
 .modal-body .hand-item .hand-fan { white-space: normal; }
-.checkout-intro {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 13px;
-  color: var(--ink-soft);
-  margin: 0 0 16px;
-  line-height: 1.5;
-}
-.checkout-form {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-.checkout-form label {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 13px;
-  color: var(--ink);
-  font-weight: 600;
-}
-.checkout-form input {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 14px;
-  padding: 10px 12px;
-  border-radius: 6px;
-  border: 1px solid rgba(155,27,27,0.25);
-  background: #fff;
-  color: var(--ink);
-}
-.checkout-form input:focus {
-  outline: none;
-  border-color: var(--red);
-  box-shadow: 0 0 0 2px rgba(155,27,27,0.12);
-}
-.checkout-details {
-  background: rgba(155,27,27,0.04);
-  border-radius: 8px;
-  padding: 12px;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 12px;
-  color: var(--ink);
-  line-height: 1.5;
-}
-.checkout-details h4 {
-  margin: 0 0 8px;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--ink);
-}
-.checkout-details p {
-  margin: 0 0 6px;
-}
-.checkout-details ul {
-  margin: 0 0 10px;
-  padding-left: 18px;
-}
-.checkout-details li {
-  margin-bottom: 3px;
-}
-.checkout-notice {
-  background: rgba(155,27,27,0.08);
-  border-left: 3px solid var(--red);
-  border-radius: 4px;
-  padding: 10px 12px;
-  margin-bottom: 12px;
-  font-weight: 600;
-  color: var(--red);
-}
-.checkout-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.checkout-submit,
-.checkout-copy {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  padding: 10px 16px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.checkout-submit {
-  background: var(--red);
-  color: var(--cream);
-}
-.checkout-submit:hover {
-  background: var(--red-deep, #7a1212);
-}
-.checkout-copy {
-  background: transparent;
-  color: var(--red);
-  border: 1.5px solid var(--red);
-}
-.checkout-copy:hover {
-  background: rgba(155,27,27,0.08);
-}
-.checkout-note {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 11px;
-  color: var(--ink-soft);
-  margin: 4px 0 0;
-  line-height: 1.4;
-}
 .modal-header {
   display: flex;
   align-items: center;
@@ -669,6 +566,7 @@ footer.calc-footer {
   .fan-reference-sticky .fan-table td { padding: 6px 4px; }
   .fan-breakdown { font-size: 11px; gap: 8px; }
   .fan-reference-hand { flex-wrap: wrap; gap: 8px 12px; }
+  .fan-reference-hand-actions { gap: 8px 12px; }
   .fan-reference-hand-content { flex-basis: 100%; min-width: 0; }
   footer.calc-footer { padding-bottom: 130px; }
 }
@@ -747,7 +645,6 @@ footer.calc-footer {
     <div class="panel-title tile-panel-title">
       <span>Select your tiles</span>
       <span class="tile-panel-actions">
-        <button id="potential-toggle" class="clear-hand-btn" type="button">Find winning hands</button>
         <button id="clear-hand-top" class="clear-hand-btn" type="button">Reset</button>
       </span>
     </div>
@@ -797,7 +694,7 @@ footer.calc-footer {
   </div>
 </section>
 
-<section class="calc-section fan-reference-sticky" style="padding-top: 0;">
+<section class="calc-section fan-reference-sticky fan-reference-hidden" style="padding-top: 0;">
   <div class="drag-handle" role="button" tabindex="0" aria-label="Drag to expand or collapse Your fan"></div>
   <div class="table-panel">
     <div class="panel-title">
@@ -807,8 +704,8 @@ footer.calc-footer {
       </span>
     </div>
     <div class="mini-hand" id="mini-hand">
-      <span class="mini-hand-label">Your hand</span>
       <span class="mini-hand-tiles" id="mini-hand-content"></span>
+      <button id="potential-toggle-mini" class="clear-hand-btn potential-toggle" type="button">Find winning hands</button>
       <button id="mini-hand-clear" class="clear-hand-btn" type="button">Clear</button>
     </div>
     <div class="fan-table-scroll">
@@ -821,11 +718,14 @@ footer.calc-footer {
     </div>
     <div class="fan-reference-hand" id="fan-reference-hand">
       <span class="fan-reference-hand-label">Your hand</span>
-      <button id="clear-tiles" class="clear-hand-btn">Clear tiles</button>
-      <button id="checkout-hand" class="clear-hand-btn" type="button" disabled>Checkout</button>
+      <span class="fan-reference-hand-actions">
+        <button id="clear-tiles" class="clear-hand-btn">Clear tiles</button>
+        <button id="potential-toggle-expanded" class="clear-hand-btn potential-toggle" type="button">Find winning hands</button>
+      </span>
       <span class="fan-reference-hand-content" id="fan-reference-hand-content"></span>
     </div>
     <div class="fan-breakdown" id="fan-breakdown"></div>
+    <button id="copy-hand" class="clear-hand-btn copy-hand-btn" type="button" disabled>Copy Hand</button>
   </div>
 </section>
 
@@ -857,34 +757,6 @@ footer.calc-footer {
   </div>
 </div>
 
-<div class="modal-overlay" id="checkout-modal" style="display: none;">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3>Checkout</h3>
-      <button id="checkout-modal-close" class="modal-close" type="button" aria-label="Close">×</button>
-    </div>
-    <div class="modal-body">
-      <p class="checkout-intro">Enter your details to open a Google Form pre-filled with this hand.</p>
-      <form id="checkout-form" class="checkout-form">
-        <label>
-          <span>Name</span>
-          <input type="text" id="checkout-name" name="name" placeholder="Your name" required>
-        </label>
-        <label>
-          <span>Email</span>
-          <input type="email" id="checkout-email" name="email" placeholder="your@email.com" required>
-        </label>
-        <div class="checkout-details" id="checkout-details"></div>
-        <div class="checkout-actions">
-          <button type="submit" class="checkout-submit">Open pre-filled Google Form</button>
-          <button type="button" id="checkout-copy" class="checkout-copy">Copy details</button>
-        </div>
-        <p class="checkout-note">The Google Form opens with your name, email, and hand details filled in.</p>
-      </form>
-    </div>
-  </div>
-</div>
-
 <script type="module" src="./src/points-calculator-ui.ts"></script>
 <script>
 (function () {
@@ -910,8 +782,8 @@ footer.calc-footer {
     window.dispatchEvent(new CustomEvent('fanreferencevisibility', { detail: { hidden } }));
   }
 
-  const dragHandle = document.querySelector('.drag-handle');
-  if (dragHandle && panel) {
+  const dragHandles = document.querySelectorAll('.drag-handle');
+  if (dragHandles.length && panel) {
     const collapsedHeight = 150;
     const expandedHeight = () => Math.min(Math.round(window.innerHeight * 0.7), 480);
     let dragging = false;
@@ -919,6 +791,7 @@ footer.calc-footer {
     let startHeight = 0;
     let hasMoved = false;
     let ignoreNextClick = false;
+    let activeDragHandle = null;
 
     function getClientY(e) {
       if (e.touches && e.touches.length > 0) return e.touches[0].clientY;
@@ -931,10 +804,11 @@ footer.calc-footer {
       dragging = true;
       hasMoved = false;
       ignoreNextClick = true;
+      activeDragHandle = this;
       startY = getClientY(e);
       startHeight = panel.getBoundingClientRect().height;
       panel.classList.add('dragging');
-      if (e.pointerId != null) dragHandle.setPointerCapture(e.pointerId);
+      if (e.pointerId != null && activeDragHandle) activeDragHandle.setPointerCapture(e.pointerId);
     }
 
     function moveDrag(e) {
@@ -951,7 +825,8 @@ footer.calc-footer {
       if (!dragging) return;
       dragging = false;
       panel.classList.remove('dragging');
-      if (e && e.pointerId != null) dragHandle.releasePointerCapture(e.pointerId);
+      if (e && e.pointerId != null && activeDragHandle) activeDragHandle.releasePointerCapture(e.pointerId);
+      activeDragHandle = null;
       const clientY = e ? getClientY(e) : startY;
       const delta = startY - clientY;
       if (!hasMoved || Math.abs(delta) <= 10) {
@@ -965,34 +840,36 @@ footer.calc-footer {
       panel.style.maxHeight = '';
     }
 
-    if (window.PointerEvent) {
-      dragHandle.addEventListener('pointerdown', startDrag, { passive: false });
-      dragHandle.addEventListener('pointermove', moveDrag, { passive: false });
-      dragHandle.addEventListener('pointerup', endDrag);
-      dragHandle.addEventListener('pointercancel', endDrag);
-    } else {
-      dragHandle.addEventListener('touchstart', startDrag, { passive: false });
-      dragHandle.addEventListener('touchmove', moveDrag, { passive: false });
-      dragHandle.addEventListener('touchend', endDrag);
-      dragHandle.addEventListener('touchcancel', endDrag);
-    }
-
-    dragHandle.addEventListener('click', (e) => {
-      if (ignoreNextClick) {
-        ignoreNextClick = false;
-        return;
+    dragHandles.forEach((dragHandle) => {
+      if (window.PointerEvent) {
+        dragHandle.addEventListener('pointerdown', startDrag, { passive: false });
+        dragHandle.addEventListener('pointermove', moveDrag, { passive: false });
+        dragHandle.addEventListener('pointerup', endDrag);
+        dragHandle.addEventListener('pointercancel', endDrag);
+      } else {
+        dragHandle.addEventListener('touchstart', startDrag, { passive: false });
+        dragHandle.addEventListener('touchmove', moveDrag, { passive: false });
+        dragHandle.addEventListener('touchend', endDrag);
+        dragHandle.addEventListener('touchcancel', endDrag);
       }
-      e.preventDefault();
-      const hidden = !panel.classList.contains('fan-reference-hidden');
-      setPanelHidden(hidden);
-    });
 
-    dragHandle.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
+      dragHandle.addEventListener('click', (e) => {
+        if (ignoreNextClick) {
+          ignoreNextClick = false;
+          return;
+        }
         e.preventDefault();
         const hidden = !panel.classList.contains('fan-reference-hidden');
         setPanelHidden(hidden);
-      }
+      });
+
+      dragHandle.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          const hidden = !panel.classList.contains('fan-reference-hidden');
+          setPanelHidden(hidden);
+        }
+      });
     });
   }
   let lastScrollY = window.scrollY;

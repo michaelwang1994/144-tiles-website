@@ -28,9 +28,6 @@ import {
 
 function $(id: string) { return document.getElementById(id); }
 
-import GOOGLE_FORM_CONFIG from './generated-google-form-config.json';
-
-const CHECKOUT_PASSWORD = 'gangnam';
 
 const selected: Record<string, number> = {}; // tile id -> count
 const melds: LockedGroup[] = [];
@@ -307,8 +304,8 @@ function updateTileUI() {
   renderFlowerPoints();
   renderWinningConditions();
 
-  const checkoutHand = $('checkout-hand') as HTMLButtonElement | null;
-  if (checkoutHand) checkoutHand.disabled = getSortedTiles(selected).length === 0;
+  const copyHand = $('copy-hand') as HTMLButtonElement | null;
+  if (copyHand) copyHand.disabled = getSortedTiles(selected).length === 0;
   renderReferenceTotal();
   renderFanBreakdown();
 }
@@ -1122,6 +1119,7 @@ function renderReferenceTotal() {
 function renderFanBreakdown() {
   const container = $('fan-breakdown');
   if (!container) return;
+  const copyHandBtn = $('copy-hand');
   container.innerHTML = '';
 
   const handResult = getHandPatternFan(handPatternState);
@@ -1239,9 +1237,14 @@ function renderFanBreakdown() {
   totalRow.appendChild(totalLabel);
   totalRow.appendChild(totalValue);
   container.appendChild(totalRow);
+
+  if (copyHandBtn) {
+    copyHandBtn.disabled = getSortedTiles(selected).length === 0;
+    container.appendChild(copyHandBtn);
+  }
 }
 
-interface CheckoutSummary {
+interface HandSummary {
   totalPoints: number;
   totalFan: number;
   totalTiles: number;
@@ -1259,7 +1262,7 @@ function getWindLabel(value: string): string {
   return ({ e: 'East', s: 'South', w: 'West', n: 'North' } as Record<string, string>)[value] ?? value;
 }
 
-function getCheckoutSummary(): CheckoutSummary {
+function getHandSummary(): HandSummary {
   const tiles = getSortedTiles(selected);
   const totalTiles = tiles.length;
 
@@ -1326,83 +1329,10 @@ function getCheckoutSummary(): CheckoutSummary {
   };
 }
 
-function buildGoogleFormPrefillUrl(name: string, email: string, summary: CheckoutSummary): string {
-  const base = `https://docs.google.com/forms/d/${GOOGLE_FORM_CONFIG.formId}/viewform`;
-  const params = new URLSearchParams({ usp: 'pp_url' });
-  const e = GOOGLE_FORM_CONFIG.entries;
-
-  function addEntry(entryId: string, value: string) {
-    if (entryId && !entryId.startsWith('YOUR_')) {
-      params.append(`entry.${entryId}`, value);
-    }
-  }
-
-  addEntry(e.name, name);
-  addEntry(e.totalFan, String(summary.totalFan));
-  addEntry(e.totalPoints, String(summary.totalPoints));
-  addEntry(e.totalTiles, String(summary.totalTiles));
-  addEntry(e.tiles, summary.tiles);
-  // Checkbox questions need one entry.* param per selected choice.
-  summary.checkedConditions.forEach((condition) => {
-    addEntry(e.checkedConditions, condition);
-  });
-  addEntry(e.tableWind, summary.tableWind);
-  addEntry(e.seatWind, summary.seatWind);
-
-  // Google Forms "Collect email addresses" field uses `emailAddress`, not `entry.*`.
-  if (e.email && e.email === 'emailAddress') {
-    params.append('emailAddress', email);
-  } else if (e.email && !e.email.startsWith('YOUR_')) {
-    addEntry(e.email, email);
-  }
-
-  return `${base}?${params.toString()}`;
-}
-
-function renderCheckoutDetails() {
-  const container = $('checkout-details');
-  if (!container) return;
-  const summary = getCheckoutSummary();
-
-  const hasHandPattern = handPatterns.some((p) => handPatternState[p.id]);
-  const showNoWinMessage = summary.totalFan === 0 || !hasHandPattern;
-
-  const noticeHtml = showNoWinMessage
-    ? `<div class="checkout-notice">You did not win this round! Log your results anyway for a surprise at the end of the night.</div>`
-    : '';
-
-  const conditionsHtml = summary.checkedConditions.length
-    ? `<ul>${summary.checkedConditions.map((c) => `<li>${escapeHtml(c)}</li>`).join('')}</ul>`
-    : '<p>No conditions selected.</p>';
-
-  container.innerHTML = `
-    ${noticeHtml}
-    <h4>Hand summary</h4>
-    <p><strong>Total fan:</strong> ${formatFan(summary.totalFan)}</p>
-    <p><strong>Total points:</strong> ${summary.totalPoints}</p>
-    <p><strong>Total tiles:</strong> ${summary.totalTiles}</p>
-    <p><strong>Tiles:</strong> ${summary.tiles || 'None'}</p>
-    <p><strong>Table wind:</strong> ${summary.tableWind}</p>
-    <p><strong>Seat wind:</strong> ${summary.seatWind}</p>
-    <h4>Checked conditions</h4>
-    ${conditionsHtml}
-  `;
-}
-
-function escapeHtml(text: string): string {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
-
-async function copyCheckoutDetailsToClipboard() {
-  const summary = getCheckoutSummary();
-  const name = ($('checkout-name') as HTMLInputElement | null)?.value.trim() ?? '';
-  const email = ($('checkout-email') as HTMLInputElement | null)?.value.trim() ?? '';
+async function copyHandToClipboard() {
+  const summary = getHandSummary();
 
   const lines: string[] = [
-    'Name: ' + (name || 'Not provided'),
-    'Email: ' + (email || 'Not provided'),
     'Total fan: ' + formatFan(summary.totalFan),
     'Total points: ' + summary.totalPoints,
     'Total tiles: ' + summary.totalTiles,
@@ -1421,48 +1351,6 @@ async function copyCheckoutDetailsToClipboard() {
   } catch (err) {
     console.error('Failed to copy:', err);
   }
-}
-
-function openCheckoutModal() {
-  const modal = $('checkout-modal');
-  if (!modal) return;
-  renderCheckoutDetails();
-  modal.style.display = 'flex';
-  ($('checkout-name') as HTMLInputElement | null)?.focus();
-}
-
-function closeCheckoutModal() {
-  const modal = $('checkout-modal');
-  if (modal) modal.style.display = 'none';
-}
-
-function submitCheckout(e: Event) {
-  e.preventDefault();
-  const name = ($('checkout-name') as HTMLInputElement | null)?.value.trim() ?? '';
-  const email = ($('checkout-email') as HTMLInputElement | null)?.value.trim() ?? '';
-  if (!name || !email) {
-    alert('Please enter your name and email.');
-    return;
-  }
-
-  const password = window.prompt(
-    'Enter the password to open the pre-filled Google Form.\n\nHint: what is the first word of the name of the venue this tournament is held? all lower-case, 7 letters.'
-  );
-  if (password === null || password.trim().toLowerCase() !== CHECKOUT_PASSWORD) {
-    alert('Incorrect password.');
-    return;
-  }
-
-  const summary = getCheckoutSummary();
-  const url = buildGoogleFormPrefillUrl(name, email, summary);
-
-  if (GOOGLE_FORM_CONFIG.formId.startsWith('YOUR_')) {
-    alert('Google Form is not configured yet. Copy the hand details and share them manually.');
-    return;
-  }
-
-  window.open(url, '_blank', 'noopener,noreferrer');
-  closeCheckoutModal();
 }
 
 function clearHand() {
@@ -1502,24 +1390,10 @@ function setMeldMode(mode: 'chow' | 'pung' | 'kong' | null) {
   }
 });
 
-const checkoutHand = $('checkout-hand');
-if (checkoutHand) {
-  checkoutHand.addEventListener('click', openCheckoutModal);
+const copyHand = $('copy-hand');
+if (copyHand) {
+  copyHand.addEventListener('click', copyHandToClipboard);
 }
-
-const checkoutModal = $('checkout-modal');
-const checkoutModalClose = $('checkout-modal-close');
-const checkoutForm = $('checkout-form');
-const checkoutCopy = $('checkout-copy');
-
-if (checkoutModalClose) checkoutModalClose.addEventListener('click', closeCheckoutModal);
-if (checkoutModal) {
-  checkoutModal.addEventListener('click', (e) => {
-    if (e.target === checkoutModal) closeCheckoutModal();
-  });
-}
-if (checkoutForm) checkoutForm.addEventListener('submit', submitCheckout);
-if (checkoutCopy) checkoutCopy.addEventListener('click', copyCheckoutDetailsToClipboard);
 
 const seatWindEl = $('seat-wind');
 if (seatWindEl) {
@@ -1556,7 +1430,6 @@ if (tableWindEl) {
   });
 }
 
-const potentialToggle = $('potential-toggle');
 const potentialModal = $('potential-modal');
 const potentialClose = $('potential-close');
 
@@ -1567,7 +1440,9 @@ function closePotentialModal() {
   if (potentialModal) potentialModal.style.display = 'none';
 }
 
-if (potentialToggle) potentialToggle.addEventListener('click', openPotentialModal);
+document.querySelectorAll('.potential-toggle').forEach((btn) => {
+  btn.addEventListener('click', openPotentialModal);
+});
 if (potentialClose) potentialClose.addEventListener('click', closePotentialModal);
 if (potentialModal) {
   potentialModal.addEventListener('click', (e) => {
