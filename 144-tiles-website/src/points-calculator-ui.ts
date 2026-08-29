@@ -81,9 +81,14 @@ function simulateAddTiles(additions: Record<string, number>): boolean {
   return ok && totalOk;
 }
 
+function hasMeldOf(id: string, type: 'chow' | 'pung' | 'kong'): boolean {
+  return melds.some((m) => m.type === type && m.tiles[0] === id);
+}
+
 function isDisabledForMeldMode(id: string): boolean {
   if (activeMeldMode === 'chow') return !isSuited(id) || isBonusTile(id);
-  if (activeMeldMode === 'pung' || activeMeldMode === 'kong') return isBonusTile(id);
+  if (activeMeldMode === 'pung') return isBonusTile(id) || hasMeldOf(id, 'pung') || hasMeldOf(id, 'kong');
+  if (activeMeldMode === 'kong') return isBonusTile(id) || hasMeldOf(id, 'kong');
   return false;
 }
 
@@ -98,6 +103,7 @@ function isSequentialChow(ids: string[]): boolean {
 }
 
 function canCreatePung(id: string): boolean {
+  if (hasMeldOf(id, 'pung') || hasMeldOf(id, 'kong')) return false;
   return simulateAddTiles({ [id]: 3 });
 }
 
@@ -110,6 +116,7 @@ function createPung(id: string) {
 }
 
 function canCreateKong(id: string): boolean {
+  if (hasMeldOf(id, 'kong')) return false;
   const pungIndex = melds.findIndex((m) => m.type === 'pung' && m.tiles[0] === id);
   if (pungIndex !== -1) {
     return getFreeCount(id) >= 1 || simulateAddTiles({ [id]: 1 });
