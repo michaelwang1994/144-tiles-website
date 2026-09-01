@@ -569,7 +569,7 @@ function renderFlowerPoints() {
   const windArcherTotal = getWindArcherFan(windArcherState, selected, seatWind, tableWind);
   let total: number;
   if (handResult.limit) {
-    total = Math.min(13, handResult.fan + winningFan);
+    total = handResult.fan;
   } else {
     total = Math.min(13, handResult.fan + windArcherTotal + flowerTotal + winningFan);
   }
@@ -608,7 +608,6 @@ function renderFlowerPoints() {
     let breakdown: string;
     if (handResult.limit) {
       breakdown = 'Limit hand: ' + handResult.limitName + ' (' + formatFan(handResult.fan) + ')';
-      if (winningFan > 0) breakdown += ' + Winning conditions: ' + formatFan(winningFan);
       breakdown += ' = ' + formatFan(total);
     } else {
       breakdown = 'Hand patterns: ' + formatFan(handResult.fan);
@@ -691,11 +690,13 @@ function renderCheckedConditions() {
     !!handPatternState['seven-pairs'] ||
     !!handPatternState['nine-gates'] ||
     !!handPatternState['thirteen-orphans'];
-  winningConditions.forEach((c) => {
-    if (!winningConditionState[c.id]) return;
-    if (c.id === 'concealed' && concealedExcluded) return;
-    addTag(c.name + ' (' + formatFan(c.fan) + ')');
-  });
+  if (!handResult.limit) {
+    winningConditions.forEach((c) => {
+      if (!winningConditionState[c.id]) return;
+      if (c.id === 'concealed' && concealedExcluded) return;
+      addTag(c.name + ' (' + formatFan(c.fan) + ')');
+    });
+  }
 
   if (list.children.length === 0) {
     const empty = document.createElement('span');
@@ -731,6 +732,66 @@ function loadSampleHand(patternId: string) {
 
   updateTileUI();
   renderWinningConditions();
+}
+
+// ---------- Sample hand modal ----------
+
+let activeSamplePatternId: string | null = null;
+
+function closeSampleModal() {
+  const modal = $('sample-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function showSampleHandModal(patternId: string) {
+  const modal = $('sample-modal');
+  const titleEl = $('sample-modal-title');
+  const descEl = $('sample-modal-desc');
+  const tilesEl = $('sample-modal-tiles');
+  if (!modal) return;
+  const sample = sampleHands[patternId];
+  const pattern = handPatterns.find((p) => p.id === patternId);
+  if (!sample || !pattern) return;
+  activeSamplePatternId = patternId;
+
+  if (titleEl) titleEl.textContent = 'Sample hand: ' + pattern.name;
+  if (descEl) descEl.textContent = pattern.desc;
+
+  if (tilesEl) {
+    tilesEl.innerHTML = '';
+    getSortedTiles(sample).forEach((t) => {
+      const span = document.createElement('span');
+      span.className = 'tile selected' + (getArcherClass(t.id) ? ' ' + getArcherClass(t.id) : '');
+      const img = createTileImage(t);
+      span.appendChild(img);
+      const sub = document.createElement('span');
+      sub.className = 'tile-label';
+      sub.textContent = getTileLabel(t.id);
+      span.appendChild(sub);
+      tilesEl.appendChild(span);
+    });
+  }
+
+  modal.style.display = 'flex';
+}
+
+const sampleModalClose = $('sample-modal-close');
+if (sampleModalClose) sampleModalClose.addEventListener('click', closeSampleModal);
+
+const sampleModalEl = $('sample-modal');
+if (sampleModalEl) {
+  sampleModalEl.addEventListener('click', (e) => {
+    if (e.target === sampleModalEl) closeSampleModal();
+  });
+}
+
+const sampleModalLoad = $('sample-modal-load');
+if (sampleModalLoad) {
+  sampleModalLoad.addEventListener('click', () => {
+    const patternId = activeSamplePatternId;
+    closeSampleModal();
+    if (patternId) loadSampleHand(patternId);
+  });
 }
 
 function renderHandPatterns() {
@@ -836,11 +897,11 @@ function renderHandPatterns() {
     sampleBtn.type = 'button';
     sampleBtn.className = 'sample-hand-btn';
     sampleBtn.textContent = 'Sample';
-    sampleBtn.title = 'Load a sample hand for ' + p.name;
+    sampleBtn.title = 'Show a sample hand for ' + p.name;
     sampleBtn.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      loadSampleHand(p.id);
+      showSampleHandModal(p.id);
     });
 
     item.appendChild(info);
@@ -1111,7 +1172,7 @@ function getTotalFan(): number {
     if (flowerIncluded[s.id] && flowerDetected[s.id]!.applies) flowerTotal += s.fan;
   });
   return handResult.limit
-    ? Math.min(13, handResult.fan + winningFan)
+    ? handResult.fan
     : Math.min(13, handResult.fan + windArcherTotal + flowerTotal + winningFan);
 }
 
@@ -1198,11 +1259,13 @@ function renderFanBreakdown() {
     !!handPatternState['nine-gates'] ||
     !!handPatternState['thirteen-orphans'];
   const winningTags: { text: string; desc: string }[] = [];
-  winningConditions.forEach((c) => {
-    if (!winningConditionState[c.id]) return;
-    if (c.id === 'concealed' && concealedExcluded) return;
-    winningTags.push({ text: c.name, desc: c.desc });
-  });
+  if (!handResult.limit) {
+    winningConditions.forEach((c) => {
+      if (!winningConditionState[c.id]) return;
+      if (c.id === 'concealed' && concealedExcluded) return;
+      winningTags.push({ text: c.name, desc: c.desc });
+    });
+  }
 
   const windArcherTags: { text: string; desc: string }[] = [];
   if (!handResult.limit) {
@@ -1229,7 +1292,7 @@ function renderFanBreakdown() {
   }
 
   addSection('Hand patterns', handResult.fan, false, handTags);
-  addSection('Winning conditions', winningFan, false, winningTags);
+  addSection('Winning conditions', winningFan, handResult.limit, winningTags);
   addSection('Wind & Archer fan', windArcherTotal, handResult.limit, windArcherTags);
   addSection('Flower fan', flowerTotal, handResult.limit, flowerTags);
 

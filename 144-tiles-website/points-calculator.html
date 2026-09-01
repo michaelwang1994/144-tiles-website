@@ -552,6 +552,20 @@
   color: var(--ink-soft);
   cursor: pointer;
 }
+#sample-modal-desc {
+  margin: 0 0 12px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+#sample-modal-tiles { justify-content: center; }
+#sample-modal-tiles .tile { cursor: default; }
+#sample-modal-tiles .tile:hover { transform: none; box-shadow: 0 2px 0 rgba(0,0,0,0.08); border-color: #d6cfc2; }
+.sample-modal-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
 @media (max-width: 700px) {
   .modal-body { padding: 12px 16px; }
 }
@@ -753,6 +767,22 @@ footer.calc-footer {
     </div>
     <div class="modal-body">
       <p id="condition-modal-desc"></p>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="sample-modal" style="display: none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="sample-modal-title"></h3>
+      <button id="sample-modal-close" class="modal-close" type="button" aria-label="Close">×</button>
+    </div>
+    <div class="modal-body">
+      <p id="sample-modal-desc"></p>
+      <div class="fan-reference-hand-tiles" id="sample-modal-tiles"></div>
+      <div class="sample-modal-actions">
+        <button id="sample-modal-load" class="clear-hand-btn" type="button">Load into calculator</button>
+      </div>
     </div>
   </div>
 </div>
