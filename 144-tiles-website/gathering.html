@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Secret Gathering · 144 Tiles Mahjong Club</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Crimson+Pro:ital,wght@0,400;0,500;1,400&family=Pinyon+Script&display=swap" rel="stylesheet">
+<style>
+  @font-face {
+    font-family: 'HanyiSentyPagoda';
+    src: url('assets/HanyiSentyPagoda-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+  }
+</style>
+<style>
+  :root {
+    --red: #9B1B1B;
+    --red-deep: #6E1010;
+    --cream: #F5EDD8;
+    --cream-warm: #EFE4C8;
+    --ink: #1a0a0a;
+    --ink-soft: #4a2a2a;
+    --envelope: #c9a66b;
+    --envelope-dark: #a6854a;
+    --envelope-light: #e3d2a8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    background: #3a0a0a;
+    color: var(--cream);
+    font-family: 'Crimson Pro', Georgia, serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+  }
+
+  .scene {
+    position: relative;
+    width: min(90vw, 420px);
+    aspect-ratio: 4 / 3;
+    perspective: 1200px;
+    text-align: center;
+  }
+
+  .hint {
+    position: absolute;
+    top: -64px;
+    left: 0;
+    right: 0;
+    font-family: 'DM Serif Display', serif;
+    font-size: 15px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    opacity: 0.75;
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.55; }
+    50% { opacity: 1; }
+  }
+
+  .envelope {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    transform-style: preserve-3d;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 1;
+  }
+
+  .envelope:hover { transform: scale(1.02); }
+  .envelope.shake { animation: shake 0.45s ease-in-out; }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-6px); }
+    80% { transform: translateX(6px); }
+  }
+
+  .envelope-body {
+    position: absolute;
+    inset: 0;
+    background: var(--envelope);
+    border-radius: 4px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.45);
+    z-index: 1;
+  }
+
+  .envelope-body::before,
+  .envelope-body::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    width: 50%;
+    height: 67%;
+    background: var(--envelope-dark);
+    z-index: 2;
+  }
+
+  .envelope-body::before {
+    left: 0;
+    clip-path: polygon(100% 0, 0 100%, 100% 100%);
+  }
+
+  .envelope-body::after {
+    right: 0;
+    clip-path: polygon(0 0, 100% 100%, 0 100%);
+  }
+
+  .envelope-flap {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 55%;
+    background: var(--envelope-light);
+    clip-path: polygon(0 0, 50% 100%, 100% 0);
+    transform-origin: top center;
+    transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 2;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+
+  .scene.open .envelope-flap {
+    transform: rotateX(180deg);
+  }
+
+  .envelope-seal {
+    position: absolute;
+    top: calc(42% + 40px);
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 64px;
+    height: 64px;
+    background: var(--red);
+    border-radius: 50%;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'HanyiSentyPagoda', cursive;
+    font-size: 38px;
+    color: var(--cream);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+  }
+
+  .scene.open .envelope-seal {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.6);
+  }
+
+  .flyer {
+    position: absolute;
+    top: calc(8% - 10px);
+    left: 50%;
+    width: 86%;
+    transform: translateX(-50%) translateY(18px);
+    opacity: 0;
+    z-index: 3;
+    transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s, opacity 0.5s ease 0.1s;
+    pointer-events: none;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.35);
+  }
+
+  .flyer img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .scene.open .flyer {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-35%);
+    pointer-events: auto;
+  }
+
+  .ticket-link {
+    position: absolute;
+    bottom: -80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(12px);
+    opacity: 0;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--cream);
+    background: var(--red);
+    padding: 14px 28px;
+    border-radius: 2px;
+    white-space: nowrap;
+    transition: background 0.2s, opacity 0.5s ease 0.6s, transform 0.5s ease 0.6s;
+    pointer-events: none;
+  }
+
+  .ticket-link:hover { background: var(--cream); color: var(--red); }
+
+  .scene.open .ticket-link {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+    pointer-events: auto;
+  }
+
+  .error-toast {
+    position: absolute;
+    bottom: -48px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    color: var(--cream-warm);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .error-toast.show { opacity: 1; }
+
+  @media (max-width: 480px) {
+    .envelope-seal { width: 52px; height: 52px; font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="scene" id="scene">
+  <p class="hint">Tap the envelope</p>
+  <div class="envelope" id="envelope" role="button" aria-label="Open secret invitation">
+    <div class="envelope-flap"></div>
+    <div class="envelope-seal">發</div>
+    <div class="envelope-body"></div>
+  </div>
+  <div class="flyer">
+    <img src="assets/MAHJONG%20SECRET%20SOCIETY%20(3).png" alt="Mahjong Secret Society flyer">
+  </div>
+  <a class="ticket-link" href="https://www.tixtree.com/e/mahjong-secret-society-519ab854181c" target="_blank" rel="noopener">Get tickets →</a>
+  <p class="error-toast" id="error">Not quite. Try again.</p>
+</div>
+
+<script>
+(function () {
+  var scene = document.getElementById('scene');
+  var envelope = document.getElementById('envelope');
+  var error = document.getElementById('error');
+
+  function showError() {
+    envelope.classList.add('shake');
+    error.classList.add('show');
+    setTimeout(function () {
+      envelope.classList.remove('shake');
+      error.classList.remove('show');
+    }, 1200);
+  }
+
+  envelope.addEventListener('click', function () {
+    if (scene.classList.contains('open')) return;
+
+    var answer = window.prompt('How many tiles are in a Chinese mahjong set?');
+    if (answer === null) return; // user cancelled
+
+    var normalized = answer.trim().toLowerCase();
+    if (normalized === '144' || normalized === 'one hundred forty-four' || normalized === 'one hundred and forty-four') {
+      scene.classList.add('open');
+    } else {
+      showError();
+    }
+  });
+})();
+</script>
+
+</body>
+</html>
