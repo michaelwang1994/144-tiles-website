@@ -166,32 +166,6 @@
     transform: translate(-50%, -50%) scale(0.6);
   }
 
-  .summons {
-    position: absolute;
-    top: 10%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 76%;
-    text-align: center;
-    font-family: 'DM Serif Display', serif;
-    font-size: 16px;
-    letter-spacing: 0.05em;
-    line-height: 1.25;
-    color: var(--ink);
-    z-index: 5;
-    pointer-events: none;
-    transition: opacity 0.4s ease;
-  }
-
-  .summons .gathering-name {
-    display: block;
-    color: var(--red);
-  }
-
-  .scene.open .summons {
-    opacity: 0;
-  }
-
   .flyer {
     position: absolute;
     top: calc(8% - 10px);
@@ -258,9 +232,7 @@
 <div class="scene" id="scene">
   <p class="hint">Tap the envelope</p>
   <div class="envelope" id="envelope" role="button" aria-label="Open secret invitation">
-    <div class="envelope-flap">
-      <div class="summons">Your summons to <span class="gathering-name">THE GATHERING</span></div>
-    </div>
+    <div class="envelope-flap"></div>
     <div class="envelope-seal">發</div>
     <div class="envelope-body"></div>
   </div>
