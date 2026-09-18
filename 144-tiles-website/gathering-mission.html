@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gathering Mission · 144 Tiles Mahjong Club</title>
+<link rel="icon" type="image/png" href="/assets/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --mission-black: #000000;
+    --mission-red: #ff0a0a;
+    --mission-red-dim: #9b1b1b;
+    --mission-gray: #1a1a1a;
+    --mission-glow: rgba(255, 10, 10, 0.35);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    min-height: 100vh;
+    background: var(--mission-black);
+    color: var(--mission-red);
+    font-family: 'Orbitron', sans-serif;
+    overflow-x: hidden;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 48px 20px 80px;
+  }
+
+  .mission-panel {
+    width: 100%;
+    max-width: 980px;
+    display: flex;
+    align-items: center;
+    gap: 48px;
+    margin-bottom: 48px;
+  }
+
+  .hero {
+    flex: 0 0 auto;
+    position: relative;
+    text-align: center;
+  }
+
+  .hero-circle {
+    width: 360px;
+    height: 360px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid var(--mission-red-dim);
+    box-shadow: 0 0 36px var(--mission-glow);
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .hero-circle img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 109%;
+    height: 109%;
+    object-fit: cover;
+    object-position: center 55%;
+    transform: translate(-50%, calc(-50% + 5px));
+    display: block;
+    filter: drop-shadow(0 0 28px var(--mission-glow));
+    animation: neon-flash 2.4s ease-in-out infinite;
+  }
+
+  @keyframes neon-flash {
+    0%, 100% {
+      opacity: 1;
+      filter: drop-shadow(0 0 28px var(--mission-glow));
+    }
+    50% {
+      opacity: 0.55;
+      filter: drop-shadow(0 0 56px rgba(255, 10, 10, 0.7));
+    }
+  }
+
+  .tagline {
+    position: absolute;
+    bottom: -40px;
+    left: 0;
+    right: 0;
+    font-size: 13px;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    text-align: center;
+    opacity: 0.85;
+  }
+
+  .terminal {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border: 1px solid var(--mission-red-dim);
+    background: var(--mission-gray);
+    padding: 28px;
+    box-shadow: 0 0 24px var(--mission-glow);
+  }
+
+  .terminal-header {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--mission-red-dim);
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .terminal-header::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: var(--mission-red);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--mission-red);
+    animation: blink 1.4s ease-in-out infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+
+  .prompt {
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+
+  .alias-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .alias-input {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 15px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--mission-red);
+    background: var(--mission-black);
+    border: 1px solid var(--mission-red-dim);
+    padding: 14px 16px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .alias-input::placeholder {
+    color: var(--mission-red-dim);
+    text-transform: uppercase;
+  }
+
+  .alias-input:focus {
+    border-color: var(--mission-red);
+    box-shadow: 0 0 14px var(--mission-glow);
+  }
+
+  .alias-submit {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--mission-black);
+    background: var(--mission-red);
+    border: none;
+    padding: 16px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+  }
+
+  .alias-submit:hover {
+    background: #ff3a3a;
+  }
+
+  .alias-submit:active {
+    transform: scale(0.98);
+  }
+
+  .feedback {
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    min-height: 22px;
+    margin-top: 6px;
+  }
+
+  .feedback.ok { color: #00ff66; text-shadow: 0 0 8px rgba(0, 255, 102, 0.35); }
+  .feedback.err { color: var(--mission-red); }
+
+  .accepted-instruction {
+    display: none;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #00ff66;
+    text-shadow: 0 0 8px rgba(0, 255, 102, 0.35);
+    margin-top: 12px;
+  }
+
+  .scanline {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(255, 10, 10, 0.03) 0px,
+      rgba(255, 10, 10, 0.03) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    z-index: 9999;
+  }
+
+  .glitch-particles {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9998;
+    overflow: hidden;
+  }
+
+  .glitch-particle {
+    position: absolute;
+    background: #ffffff;
+    opacity: 0;
+    will-change: opacity, transform;
+    box-shadow: 0 0 4px rgba(255, 255, 255, 0.45);
+  }
+
+  @keyframes glitch-pop {
+    0% { opacity: 0; transform: translate(0, 0); }
+    12% { opacity: 0.5; transform: translate(0, 0); }
+    18% { opacity: 0.15; transform: translate(2px, 0); }
+    24% { opacity: 0.45; transform: translate(-1px, 0); }
+    35% { opacity: 0.1; transform: translate(1px, 0); }
+    45% { opacity: 0.4; transform: translate(0, 0); }
+    55% { opacity: 0; transform: translate(-2px, 0); }
+    100% { opacity: 0; transform: translate(0, 0); }
+  }
+
+  @media (max-width: 820px) {
+    .mission-panel {
+      flex-direction: column;
+      align-items: center;
+      gap: 56px;
+    }
+    .hero {
+      flex: 0 0 auto;
+      padding-bottom: 40px;
+    }
+    .hero-circle {
+      width: 280px;
+      height: 280px;
+    }
+    .terminal {
+      width: 100%;
+      max-width: 520px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    body { padding: 32px 16px 64px; }
+    .hero-circle {
+      width: 220px;
+      height: 220px;
+    }
+    .terminal { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="scanline"></div>
+<div class="glitch-particles" id="glitch-particles" aria-hidden="true"></div>
+
+<div class="mission-panel">
+  <section class="hero">
+    <div class="hero-circle">
+      <img src="assets/MAHJONG%20SECRET%20SOCIETY.svg" alt="Mahjong Secret Society">
+    </div>
+    <p class="tagline">Enter your code name</p>
+  </section>
+
+  <section class="terminal">
+  <div class="terminal-header">Secure Channel // 144 Tiles</div>
+  <p class="prompt">ENTER YOUR CODE NAME</p>
+  <form class="alias-form" id="alias-form" autocomplete="off">
+    <input
+      type="text"
+      id="alias-input"
+      class="alias-input"
+      placeholder="Type alias here..."
+      aria-label="Code name"
+      required
+    >
+    <button type="submit" class="alias-submit">Verify Identity</button>
+  </form>
+  <div class="feedback" id="feedback" aria-live="polite"></div>
+
+  <div id="exchange-mission" style="display: none;">
+    <p class="prompt" style="margin-top: 20px;">YOUR MISSION: THE EXCHANGE</p>
+    <p class="prompt">Order a drink at the bar and ask the bartender: What is your favorite drink? Enter the bartender's answer.</p>
+    <form class="alias-form" id="exchange-form" autocomplete="off">
+      <input
+        type="text"
+        id="exchange-input"
+        class="alias-input"
+        placeholder="Bartender's answer..."
+        aria-label="Bartender answer"
+        required
+      >
+      <button type="submit" class="alias-submit">Submit Answer</button>
+    </form>
+    <div class="feedback" id="exchange-feedback" aria-live="polite"></div>
+    <p class="accepted-instruction" id="exchange-accepted">Congratulations on completing your mission. Show this screen to The Host or The Teacher.</p>
+  </div>
+
+  <div id="report-mission" style="display: none;">
+    <p class="prompt" style="margin-top: 20px;">YOUR MISSION: THE REPORT</p>
+    <p class="prompt">Find a mahjong set with a mission tile that is replaced with a blank tile and report back what that tile is.</p>
+    <form class="alias-form" id="report-form" autocomplete="off">
+      <input
+        type="text"
+        id="report-input"
+        class="alias-input"
+        placeholder="Tile name..."
+        aria-label="Tile name"
+        required
+      >
+      <button type="submit" class="alias-submit">Submit Answer</button>
+    </form>
+    <div class="feedback" id="report-feedback" aria-live="polite"></div>
+    <p class="accepted-instruction" id="report-accepted">Congratulations on completing your mission. Show this screen to The Host or The Teacher.</p>
+  </div>
+
+  <div id="ingredient-mission" style="display: none;">
+    <p class="prompt" style="margin-top: 20px;">YOUR MISSION: THE INGREDIENT</p>
+    <p class="prompt">Look at the mooncake ingredients and report back the 2 word secret code created by the capitalized letters (1st word from Snow Skin mooncakes and 2nd word from Red Bean mooncakes).</p>
+    <form class="alias-form" id="ingredient-form" autocomplete="off">
+      <input
+        type="text"
+        id="ingredient-input"
+        class="alias-input"
+        placeholder="Secret code..."
+        aria-label="Secret code"
+        required
+      >
+      <button type="submit" class="alias-submit">Submit Answer</button>
+    </form>
+    <div class="feedback" id="ingredient-feedback" aria-live="polite"></div>
+    <p class="accepted-instruction" id="ingredient-accepted">Congratulations on completing your mission. Show this screen to The Host or The Teacher.</p>
+  </div>
+
+  <div id="melody-mission" style="display: none;">
+    <p class="prompt" style="margin-top: 20px;">YOUR MISSION: THE MELODY</p>
+    <p class="prompt">Listen for an announcement from the DJ every 30 minutes from 8:30pm starting with "The hidden melody is...".</p>
+    <form class="alias-form" id="melody-form" autocomplete="off">
+      <input
+        type="text"
+        id="melody-input"
+        class="alias-input"
+        placeholder="Hidden melody..."
+        aria-label="Hidden melody"
+        required
+      >
+      <button type="submit" class="alias-submit">Submit Answer</button>
+    </form>
+    <div class="feedback" id="melody-feedback" aria-live="polite"></div>
+    <p class="accepted-instruction" id="melody-accepted">Congratulations on completing your mission. Show this screen to The Host or The Teacher.</p>
+  </div>
+</section>
+</div>
+
+<script>
+(function () {
+  var form = document.getElementById('alias-form');
+  var input = document.getElementById('alias-input');
+  var feedback = document.getElementById('feedback');
+  var exchangeMission = document.getElementById('exchange-mission');
+  var exchangeForm = document.getElementById('exchange-form');
+  var exchangeInput = document.getElementById('exchange-input');
+  var exchangeFeedback = document.getElementById('exchange-feedback');
+  var exchangeAccepted = document.getElementById('exchange-accepted');
+  var reportMission = document.getElementById('report-mission');
+  var reportForm = document.getElementById('report-form');
+  var reportInput = document.getElementById('report-input');
+  var reportFeedback = document.getElementById('report-feedback');
+  var reportAccepted = document.getElementById('report-accepted');
+  var ingredientMission = document.getElementById('ingredient-mission');
+  var ingredientForm = document.getElementById('ingredient-form');
+  var ingredientInput = document.getElementById('ingredient-input');
+  var ingredientFeedback = document.getElementById('ingredient-feedback');
+  var ingredientAccepted = document.getElementById('ingredient-accepted');
+  var melodyMission = document.getElementById('melody-mission');
+  var melodyForm = document.getElementById('melody-form');
+  var melodyInput = document.getElementById('melody-input');
+  var melodyFeedback = document.getElementById('melody-feedback');
+  var melodyAccepted = document.getElementById('melody-accepted');
+
+  function normalize(s) {
+    return s.toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+
+  function normalizeAnswer(s) {
+    return s.toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+
+    var aliasMap = {
+    'Fire Horse': 'The Exchange' ,
+    'Door Guardian': 'The Exchange' ,
+    'East Wind': 'The Exchange' ,
+    'South Wind': 'The Exchange' ,
+    'Red Archer': 'The Exchange' ,
+    'White Tiger': 'The Exchange' ,
+    'West Wind': 'The Exchange' ,
+    'North Wind': 'The Exchange' ,
+    'Jade Emperor': 'The Exchange' ,
+    'Bamboo Ghost': 'The Exchange' ,
+    'Golden Koi': 'The Report' ,
+    'Phoenix Eye': 'The Report' ,
+    'Lotus Blade': 'The Report' ,
+    'Moon Tile': 'The Report' ,
+    'Fire Cannon': 'The Report' ,
+    'Cloud Chaser': 'The Report' ,
+    'Stone Lion': 'The Report' ,
+    'Iron Blossom': 'The Report' ,
+    'Midnight Escape': 'The Report' ,
+    'Long Stick': 'The Report' ,
+    'Silk Robe': 'The Ingredient' ,
+    'Crouching Tiger': 'The Ingredient' ,
+    'Scholar Four': 'The Ingredient' ,
+    'Peony Mask': 'The Ingredient' ,
+    'Cedar Scroll': 'The Ingredient' ,
+    'Thunder Clap': 'The Ingredient' ,
+    'Willow Shade': 'The Ingredient' ,
+    'Porcelain Fox': 'The Ingredient' ,
+    'Vermilion Bird': 'The Ingredient' ,
+    'Ebony Tile': 'The Ingredient' ,
+    'Paper Lantern': 'The Melody' ,
+    'Sword Dots': 'The Melody' ,
+    'Jade Palace': 'The Melody' ,
+    'Dewdrop Circle': 'The Melody' ,
+    'Broken Vase': 'The Melody' ,
+    'Shadow Flower': 'The Melody' ,
+  };
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var raw = input.value.trim();
+    if (!raw) {
+      feedback.textContent = '>> ALIAS REQUIRED';
+      feedback.className = 'feedback err';
+      return;
+    }
+    var key = normalize(raw);
+    var matchedAlias = Object.keys(aliasMap).find(function (a) { return normalize(a) === key; });
+    if (matchedAlias) {
+      var mission = aliasMap[matchedAlias];
+      feedback.textContent = '>> IDENTITY CONFIRMED. WELCOME, ' + matchedAlias.toUpperCase() + '.';
+      feedback.className = 'feedback ok';
+      if (mission === 'The Exchange' && exchangeMission) {
+        form.style.display = 'none';
+        exchangeMission.style.display = 'block';
+      } else if (mission === 'The Report' && reportMission) {
+        form.style.display = 'none';
+        reportMission.style.display = 'block';
+      } else if (mission === 'The Ingredient' && ingredientMission) {
+        form.style.display = 'none';
+        ingredientMission.style.display = 'block';
+      } else if (mission === 'The Melody' && melodyMission) {
+        form.style.display = 'none';
+        melodyMission.style.display = 'block';
+      }
+    } else {
+      feedback.textContent = '>> ALIAS NOT RECOGNIZED. ACCESS DENIED.';
+      feedback.className = 'feedback err';
+    }
+  });
+
+  if (exchangeForm) {
+    exchangeForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var answer = exchangeInput.value.trim();
+      if (!answer) {
+        exchangeFeedback.textContent = '>> ANSWER REQUIRED';
+        exchangeFeedback.className = 'feedback err';
+        return;
+      }
+      var normalized = normalizeAnswer(answer);
+      var accepted = ['icedsugarcanejuice', 'icesugarcanjuice'];
+      if (accepted.indexOf(normalized) !== -1) {
+        exchangeFeedback.textContent = '>> ANSWER ACCEPTED.';
+        exchangeFeedback.className = 'feedback ok';
+        exchangeForm.style.display = 'none';
+        exchangeAccepted.style.display = 'block';
+      } else {
+        exchangeFeedback.textContent = '>> THAT IS NOT THE ANSWER.';
+        exchangeFeedback.className = 'feedback err';
+        exchangeAccepted.style.display = 'none';
+      }
+    });
+  }
+
+  if (reportForm) {
+    reportForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var answer = reportInput.value.trim();
+      if (!answer) {
+        reportFeedback.textContent = '>> ANSWER REQUIRED';
+        reportFeedback.className = 'feedback err';
+        return;
+      }
+      var normalized = normalizeAnswer(answer);
+      var accepted = ['northwind', 'nw', 'north'];
+      if (accepted.indexOf(normalized) !== -1) {
+        reportFeedback.textContent = '>> ANSWER ACCEPTED.';
+        reportFeedback.className = 'feedback ok';
+        reportForm.style.display = 'none';
+        reportAccepted.style.display = 'block';
+      } else {
+        reportFeedback.textContent = '>> THAT IS NOT THE ANSWER.';
+        reportFeedback.className = 'feedback err';
+        reportAccepted.style.display = 'none';
+      }
+    });
+  }
+
+  if (ingredientForm) {
+    ingredientForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var answer = ingredientInput.value.trim();
+      if (!answer) {
+        ingredientFeedback.textContent = '>> ANSWER REQUIRED';
+        ingredientFeedback.className = 'feedback err';
+        return;
+      }
+      var normalized = normalizeAnswer(answer);
+      if (normalized === 'luminouscravings') {
+        ingredientFeedback.textContent = '>> ANSWER ACCEPTED.';
+        ingredientFeedback.className = 'feedback ok';
+        ingredientForm.style.display = 'none';
+        ingredientAccepted.style.display = 'block';
+      } else {
+        ingredientFeedback.textContent = '>> THAT IS NOT THE ANSWER.';
+        ingredientFeedback.className = 'feedback err';
+        ingredientAccepted.style.display = 'none';
+      }
+    });
+  }
+
+  if (melodyForm) {
+    melodyForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var answer = melodyInput.value.trim();
+      if (!answer) {
+        melodyFeedback.textContent = '>> ANSWER REQUIRED';
+        melodyFeedback.className = 'feedback err';
+        return;
+      }
+      var normalized = normalizeAnswer(answer);
+      if (normalized === 'shuffleshuffle') {
+        melodyFeedback.textContent = '>> ANSWER ACCEPTED.';
+        melodyFeedback.className = 'feedback ok';
+        melodyForm.style.display = 'none';
+        melodyLink.style.display = 'block';
+      } else {
+        melodyFeedback.textContent = '>> THAT IS NOT THE ANSWER.';
+        melodyFeedback.className = 'feedback err';
+        melodyLink.style.display = 'none';
+      }
+    });
+  }
+})();
+</script>
+
+<script>
+(function () {
+  var circle = document.querySelector('.hero-circle');
+  var terminal = document.querySelector('.terminal');
+  var MOBILE_BREAKPOINT = 820;
+
+  function matchCircle() {
+    if (!circle || !terminal) return;
+    if (window.innerWidth > MOBILE_BREAKPOINT) {
+      var h = terminal.getBoundingClientRect().height;
+      circle.style.width = h + 'px';
+      circle.style.height = h + 'px';
+    } else {
+      circle.style.width = '';
+      circle.style.height = '';
+    }
+  }
+
+  matchCircle();
+  window.addEventListener('resize', matchCircle);
+})();
+</script>
+
+<script>
+(function () {
+  var container = document.getElementById('glitch-particles');
+  if (!container) return;
+
+  function spawnParticle() {
+    var p = document.createElement('div');
+    p.className = 'glitch-particle';
+    var size = 25;
+    var isBar = Math.random() < 0.35;
+    p.style.width = (isBar ? size * 3 : size) + 'px';
+    p.style.height = (isBar ? Math.max(6, Math.floor(size * 0.4)) : size) + 'px';
+    p.style.left = Math.random() * 100 + 'vw';
+    p.style.top = Math.random() * 100 + 'vh';
+    p.style.animation = 'glitch-pop ' + (0.22 + Math.random() * 0.28) + 's steps(1, end) forwards';
+    container.appendChild(p);
+    window.setTimeout(function () {
+      if (p.parentNode) p.parentNode.removeChild(p);
+    }, 800);
+  }
+
+  function schedule() {
+    var delay = 3000;
+    window.setTimeout(function () {
+      var count = 2 + Math.floor(Math.random() * 5);
+      for (var i = 0; i < count; i++) {
+        window.setTimeout(spawnParticle, i * 60);
+      }
+      schedule();
+    }, delay);
+  }
+
+  schedule();
+})();
+</script>
+
+</body>
+</html>

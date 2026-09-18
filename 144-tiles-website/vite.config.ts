@@ -26,7 +26,11 @@ function pageRoutePlugin(route, htmlFile) {
 }
 
 export default defineConfig({
-  plugins: [pageRoutePlugin("points", "points-calculator.html"), pageRoutePlugin("gathering", "gathering.html")],
+  plugins: [
+    pageRoutePlugin("points", "points-calculator.html"),
+    pageRoutePlugin("gathering", "gathering.html"),
+    pageRoutePlugin("gathering-mission", "gathering-mission.html"),
+  ],
   server: { open: true },
   base: "/",
   build: {
@@ -36,6 +40,7 @@ export default defineConfig({
         board: resolve(__dirname, "board_index.html"),
         points: resolve(__dirname, "points-calculator.html"),
         gathering: resolve(__dirname, "gathering.html"),
+        "gathering-mission": resolve(__dirname, "gathering-mission.html"),
       },
     },
   },
