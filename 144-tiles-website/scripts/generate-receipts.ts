@@ -39,6 +39,42 @@ function formatTimestamp(value: unknown): string {
   return d.toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' });
 }
 
+function parseFilterDate(value: string): Date | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+
+  // YYYY-MM-DD
+  const isoMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (isoMatch) {
+    const d = new Date(Number(isoMatch[1]), Number(isoMatch[2]) - 1, Number(isoMatch[3]));
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+
+  // M/D/YYYY or MM/DD/YYYY
+  const usFullMatch = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (usFullMatch) {
+    const d = new Date(Number(usFullMatch[3]), Number(usFullMatch[1]) - 1, Number(usFullMatch[2]));
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+
+  // M/D or MM/DD — assume current year
+  const usShortMatch = trimmed.match(/^(\d{1,2})\/(\d{1,2})$/);
+  if (usShortMatch) {
+    const now = new Date();
+    const d = new Date(now.getFullYear(), Number(usShortMatch[1]) - 1, Number(usShortMatch[2]));
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+
+  const d = new Date(trimmed);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function submissionTimestamp(s: Submission): number {
+  if (!s.timestamp) return 0;
+  const d = new Date(String(s.timestamp));
+  return Number.isNaN(d.getTime()) ? 0 : d.getTime();
+}
+
 function escapeHtml(text: unknown): string {
   return String(text)
     .replace(/&/g, '&amp;')
@@ -272,7 +308,7 @@ const RECEIPT_CSS = `
   }
 `;
 
-function receiptFor(email: string, group: Submission[], logoUri: string): string {
+function receiptFor(email: string, group: Submission[], logoUri: string, date?: string): string {
   const chosenName = mode(group.map((s) => s.name));
   const hands = group.filter(hasHandDetails);
   const hasHands = hands.length > 0;
@@ -345,7 +381,7 @@ function receiptFor(email: string, group: Submission[], logoUri: string): string
       <header class="receipt-header">
         ${logoImg}
         <h1>144 Tiles Mahjong Club</h1>
-        <p>All Levels Mahjong Tournament @ Gangnam Market 8/24</p>
+        <p>All Levels Mahjong Tournament @ Gangnam Market ${date ? escapeHtml(date) : '8/24'}</p>
       </header>
 
       <div class="receipt-info">
@@ -460,31 +496,41 @@ function indexOfHeader(headers: string[], candidates: string[]): number {
   return -1;
 }
 
+function firstNonEmpty(row: string[], indices: number[]): string | undefined {
+  for (const idx of indices) {
+    const value = row[idx];
+    if (value && value.trim() !== '') return value.trim();
+  }
+  return undefined;
+}
+
 function rowToSubmission(
   row: string[],
-  idx: Record<string, number>
+  idx: Record<string, number | number[]>
 ): Submission | null {
   const email =
-    (row[idx.emailReceipt] ?? '').trim() ||
-    (row[idx.emailAddress] ?? '').trim();
+    (row[idx.emailReceipt as number] ?? '').trim() ||
+    (row[idx.emailAddress as number] ?? '').trim();
   if (!email) return null;
 
-  const checkedConditionsRaw = row[idx.checkedConditions] ?? '';
+  const checkedConditionsRaw = row[idx.checkedConditions as number] ?? '';
   const checkedConditions = checkedConditionsRaw
     ? checkedConditionsRaw.split(/,\s*/).filter(Boolean)
     : [];
 
+  const nameIndices = Array.isArray(idx.name) ? idx.name : [idx.name as number];
+
   return {
-    timestamp: row[idx.timestamp] || undefined,
+    timestamp: row[idx.timestamp as number] || undefined,
     email,
-    name: row[idx.name] || undefined,
-    totalPoints: row[idx.totalPoints] || undefined,
-    totalFan: row[idx.totalFan] || undefined,
-    totalTiles: row[idx.totalTiles] || undefined,
-    tableWind: row[idx.tableWind] || undefined,
-    seatWind: row[idx.seatWind] || undefined,
+    name: firstNonEmpty(row, nameIndices),
+    totalPoints: row[idx.totalPoints as number] || undefined,
+    totalFan: row[idx.totalFan as number] || undefined,
+    totalTiles: row[idx.totalTiles as number] || undefined,
+    tableWind: row[idx.tableWind as number] || undefined,
+    seatWind: row[idx.seatWind as number] || undefined,
     checkedConditions,
-    tiles: row[idx.hand] || undefined,
+    tiles: row[idx.hand as number] || undefined,
   };
 }
 
@@ -510,11 +556,19 @@ async function fetchSubmissionsFromSheet(
     throw new Error('Sheet has no headers');
   }
 
+  function allHeaderIndices(candidates: string[]): number[] {
+    const lowerCandidates = candidates.map((c) => c.toLowerCase());
+    return headers
+      .map((h, i) => ({ h: h.toLowerCase(), i }))
+      .filter(({ h }) => lowerCandidates.includes(h))
+      .map(({ i }) => i);
+  }
+
   const idx = {
     timestamp: indexOfHeader(headers, ['Timestamp']),
     emailAddress: indexOfHeader(headers, ['Email Address']),
     emailReceipt: indexOfHeader(headers, ['Email?', 'Email']),
-    name: indexOfHeader(headers, ['What is your name?', 'Name']),
+    name: allHeaderIndices(['What is your name?', 'Name']),
     totalPoints: indexOfHeader(headers, ['Total Points']),
     totalFan: indexOfHeader(headers, ['Total Fan']),
     totalTiles: indexOfHeader(headers, ['Total Tiles']),
@@ -554,9 +608,21 @@ async function loadSubmissions(source: string): Promise<Submission[]> {
   return parsed as Submission[];
 }
 
+function parseFlagValue(flag: string): string | undefined {
+  const prefix = `--${flag}=`;
+  const arg = process.argv.find((a) => a.startsWith(prefix));
+  return arg ? arg.slice(prefix.length) : undefined;
+}
+
 async function main() {
   const dryRun = process.argv.includes('--dry-run');
   const sendFlag = process.argv.includes('--send');
+  const date = parseFlagValue('date');
+  const filterDate = date ? parseFilterDate(date) : null;
+  if (date && !filterDate) {
+    console.error(`Invalid date: ${date}. Use MM/DD, MM/DD/YYYY, or YYYY-MM-DD.`);
+    process.exit(1);
+  }
   const positional = process.argv.slice(2).filter((a) => !a.startsWith('--'));
   const source = positional[0] ?? DEFAULT_SHEET_URL;
   const outputPath = resolve(positional[1] ?? 'output/receipts.html');
@@ -564,11 +630,18 @@ async function main() {
   const sheetSource = parseSheetArg(source) !== null;
   const shouldSend = (sheetSource || sendFlag) && !dryRun;
 
-  const submissions = await loadSubmissions(source);
+  let submissions = await loadSubmissions(source);
 
   if (!Array.isArray(submissions)) {
     console.error('Input must be an array of submissions');
     process.exit(1);
+  }
+
+  if (filterDate) {
+    const beforeCount = submissions.length;
+    const cutoff = filterDate.getTime();
+    submissions = submissions.filter((s) => submissionTimestamp(s) >= cutoff);
+    console.log(`Filtered by date ${date}: ${submissions.length} of ${beforeCount} submission(s) on or after ${filterDate.toLocaleDateString('en-US')}.`);
   }
 
   const groups = new Map<string, Submission[]>();
@@ -612,7 +685,7 @@ async function main() {
 
   const receiptSections: string[] = [];
   for (const [email, group] of groups) {
-    const aggregateSection = receiptFor(email, group, logoBase64);
+    const aggregateSection = receiptFor(email, group, logoBase64, date);
     receiptSections.push(aggregateSection);
 
     if (shouldSend) {
@@ -621,7 +694,7 @@ async function main() {
         continue;
       }
 
-      const emailSection = receiptFor(email, group, 'cid:logo');
+      const emailSection = receiptFor(email, group, 'cid:logo', date);
       const html = emailTemplate(emailSection);
       const attachments = logoBuffer
         ? [

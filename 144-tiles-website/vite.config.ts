@@ -28,6 +28,7 @@ function pageRoutePlugin(route, htmlFile) {
 export default defineConfig({
   plugins: [
     pageRoutePlugin("points", "points-calculator.html"),
+    pageRoutePlugin("points-gangnam", "points-gangnam.html"),
     pageRoutePlugin("gathering", "gathering.html"),
     pageRoutePlugin("gathering-mission", "gathering-mission.html"),
   ],
@@ -39,6 +40,7 @@ export default defineConfig({
         main: resolve(__dirname, "index.html"),
         board: resolve(__dirname, "board_index.html"),
         points: resolve(__dirname, "points-calculator.html"),
+        "points-gangnam": resolve(__dirname, "points-gangnam.html"),
         gathering: resolve(__dirname, "gathering.html"),
         "gathering-mission": resolve(__dirname, "gathering-mission.html"),
       },

@@ -728,6 +728,7 @@ function loadSampleHand(patternId: string) {
 
   if (patternId === 'self-triplets') {
     winningConditionState['concealed'] = true;
+    handPatternState['self-triplets'] = true;
   }
 
   updateTileUI();
@@ -801,33 +802,14 @@ function renderHandPatterns() {
 
   const detected = detectHandPatterns(selected, melds);
   const isComplete = isValidWinningHand(selected, melds);
-  const inferredSelfTriplets = detected['all-triplets'] && !!winningConditionState['concealed'];
 
   if (isComplete) {
-    // When the hand is complete, auto-select only the highest-scoring detected pattern.
-    const candidates: { id: string; fan: number }[] = [];
+    // When the hand is complete, auto-select all detected patterns so their fan adds up.
     handPatterns.forEach((p) => {
       if (p.auto && detected[p.id]) {
-        candidates.push({ id: p.id, fan: p.fan });
+        handPatternState[p.id] = true;
       }
     });
-    if (inferredSelfTriplets) {
-      candidates.push({ id: 'self-triplets', fan: 10 });
-    }
-
-    if (candidates.length > 0) {
-      const top = candidates.reduce((best, current) => (current.fan > best.fan ? current : best));
-      handPatterns.forEach((p) => {
-        if (p.id === top.id) {
-          handPatternState[p.id] = true;
-        } else if (p.auto && detected[p.id]) {
-          handPatternState[p.id] = false;
-        }
-      });
-      if (top.id === 'self-triplets') {
-        handPatternState['all-triplets'] = false;
-      }
-    }
   } else {
     // For incomplete hands, keep the original behavior of auto-selecting any detected pattern.
     handPatterns.forEach((p) => {
@@ -835,11 +817,6 @@ function renderHandPatterns() {
         handPatternState[p.id] = true;
       }
     });
-  }
-
-  // Clear self-triplets when it is no longer inferred from all-triplets + concealed.
-  if (!inferredSelfTriplets && handPatternState['self-triplets']) {
-    handPatternState['self-triplets'] = false;
   }
 
   if (handPatternState['seven-pairs'] || handPatternState['nine-gates'] || handPatternState['thirteen-orphans']) {
@@ -1160,7 +1137,7 @@ function formatFan(fan: number): string {
   return `${fan} fan`;
 }
 
-function getTotalFan(): number {
+export function getTotalFan(): number {
   const handResult = getHandPatternFan(handPatternState);
   const winningFan = getWinningConditionFan();
   const windArcherTotal = getWindArcherFan(windArcherState, selected, seatWind, tableWind);
@@ -1314,7 +1291,7 @@ function renderFanBreakdown() {
   }
 }
 
-interface HandSummary {
+export interface HandSummary {
   totalPoints: number;
   totalFan: number;
   totalTiles: number;
@@ -1332,7 +1309,7 @@ function getWindLabel(value: string): string {
   return ({ e: 'East', s: 'South', w: 'West', n: 'North' } as Record<string, string>)[value] ?? value;
 }
 
-function getHandSummary(): HandSummary {
+export function getHandSummary(): HandSummary {
   const tiles = getSortedTiles(selected);
   const totalTiles = tiles.length;
 

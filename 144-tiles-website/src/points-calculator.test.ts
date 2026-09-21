@@ -90,6 +90,43 @@ describe('detectHandPatterns', () => {
     expect(detected['mixed-one-suit']).toBe(false);
   });
 
+  it('detects Mixed One Suit and All in Triplets together', () => {
+    const selected = selectedFromIds(
+      ids(
+        repeat('m1', 3), repeat('m2', 3), repeat('m3', 3),
+        repeat('we', 3), repeat('dr', 2)
+      )
+    );
+    const detected = detectHandPatterns(selected);
+    expect(detected['mixed-one-suit']).toBe(true);
+    expect(detected['all-triplets']).toBe(true);
+  });
+
+  it('detects All One Suit and All in Triplets together', () => {
+    const selected = selectedFromIds(
+      ids(
+        repeat('m1', 3), repeat('m2', 3), repeat('m3', 3),
+        repeat('m4', 3), repeat('m5', 2)
+      )
+    );
+    const detected = detectHandPatterns(selected);
+    expect(detected['all-one-suit']).toBe(true);
+    expect(detected['all-triplets']).toBe(true);
+  });
+
+  it('detects All One Suit and Common Hand together', () => {
+    const selected = selectedFromIds(
+      ids(
+        repeat('m1', 1), repeat('m2', 2), repeat('m3', 2),
+        repeat('m4', 2), repeat('m5', 3), repeat('m6', 1),
+        repeat('m7', 1), repeat('m8', 1), repeat('m9', 1)
+      )
+    );
+    const detected = detectHandPatterns(selected);
+    expect(detected['all-one-suit']).toBe(true);
+    expect(detected['common-hand']).toBe(true);
+  });
+
   it('detects Mixed Orphans', () => {
     const selected = selectedFromIds(
       ids(
@@ -274,6 +311,36 @@ describe('getHandPatternFan', () => {
     };
     const result = getHandPatternFan(state);
     expect(result.fan).toBe(4);
+    expect(result.limit).toBe(false);
+  });
+
+  it('sums Mixed One Suit and All in Triplets fan', () => {
+    const state: Record<string, boolean> = {
+      'mixed-one-suit': true,
+      'all-triplets': true,
+    };
+    const result = getHandPatternFan(state);
+    expect(result.fan).toBe(6);
+    expect(result.limit).toBe(false);
+  });
+
+  it('sums All One Suit and All in Triplets fan', () => {
+    const state: Record<string, boolean> = {
+      'all-one-suit': true,
+      'all-triplets': true,
+    };
+    const result = getHandPatternFan(state);
+    expect(result.fan).toBe(10);
+    expect(result.limit).toBe(false);
+  });
+
+  it('sums All One Suit and Common Hand fan', () => {
+    const state: Record<string, boolean> = {
+      'all-one-suit': true,
+      'common-hand': true,
+    };
+    const result = getHandPatternFan(state);
+    expect(result.fan).toBe(8);
     expect(result.limit).toBe(false);
   });
 

@@ -11,7 +11,7 @@
 import { writeFile, mkdir } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 
-const DEFAULT_FORM_ID = '1oFNiYSsM3UuEWGS2b8lqvgriWaA4sC90dB7sg4j571w';
+const DEFAULT_FORM_ID = '1FAIpQLScNYzVIv-8jBC8Om1SwWQ925y1iNzAlaj-j081RS5RpndEUcA';
 const OUTPUT_PATH = resolve('src/generated-google-form-config.json');
 
 interface FormConfig {
@@ -21,7 +21,7 @@ interface FormConfig {
 
 async function main() {
   const formId = process.argv[2] ?? DEFAULT_FORM_ID;
-  const url = `https://docs.google.com/forms/d/${formId}/viewform`;
+  const url = `https://docs.google.com/forms/d/e/${formId}/viewform`;
 
   const res = await fetch(url);
   if (!res.ok) {
@@ -72,6 +72,7 @@ async function main() {
       // If it uses "Collect email addresses" instead, set this to "emailAddress".
       email: emailEntryId || 'emailAddress',
       name: titleToEntry['What is your name?'] ?? '',
+      fanMinimum: titleToEntry['Fan Minimum'] ?? '',
       totalFan: titleToEntry['Total Fan'] ?? '',
       totalPoints: titleToEntry['Total Points'] ?? '',
       totalTiles: titleToEntry['Total Tiles'] ?? '',
